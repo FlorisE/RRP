@@ -1,0 +1,39 @@
+mixin editor-item(bindTo, addRendered, removeRendered)
+    div(id=bindTo, data-bind='foreach: { data: #{bindTo}, afterAdd: afterAddStream }')
+        .box.stream-container.text-center(
+            data-bind='attr: { id: "stream" + id }, style: { left: xpx, top: ypx }')
+            div(data-bind="css: streamClass")
+                p(data-bind='text: name')
+
+            if addRendered
+                button.btn.btn-default.btn-lg.stream-menu(
+                    data-bind='' +
+                    'visible: menuVisible, ' +
+                    'click: $parent.addOperator',
+                    data-toggle="modal",
+                    data-target="#add-op"
+                )
+                    span.glyphicon.glyphicon-plus
+                span
+            if removeRendered
+                button.btn.btn-danger.btn-lg.stream-menu(
+                    data-bind='' +
+                    'visible: menuVisible, ' +
+                    'click: $parent.removeStream'
+                    )
+                    span.glyphicon.glyphicon-remove
+
+#editor-container.col-md-10(data-bind="with: program")
+    +editor-item('streams', true, true)
+    +editor-item('actuators', false, true)
+
+    div(data-bind='foreach: { data: unaryoperators, afterAdd: afterAddUnaryOperator }')
+        div.operation.hidden(data-bind='attr: { id: "operator" + id }, ' +
+                               'text: label(), ' +
+                               'click: $parent.operatorClicked',
+                    data-toggle='modal', data-target='#add-op' )
+    div(data-bind='foreach: { data: naryoperators, afterAdd: afterAddNAryOperator }')
+        .box.nary(
+            data-bind='attr: { id: "operator" + id }, ' +
+                       'style: { left: xpx, top: ypx }')
+            p(data-bind='text: name')

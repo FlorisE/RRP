@@ -1,0 +1,16 @@
+#add-program.modal.fade(role='dialog',tabindex="-1",data-bind="with: programModal")
+    .modal-dialog(role='document')
+        .modal-content
+            form(data-bind="submit: save")
+                .modal-header
+                    h4.modal-title Add program
+                .modal-body
+                    .form-group
+                        label(for='field-name') Name
+                        input#field-name.form-control(
+                            placeholder="Name",
+                            data-bind="value: name"
+                        )
+                .modal-footer
+                    button.btn.btn-default(data-dismiss="modal") Close
+                    button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save

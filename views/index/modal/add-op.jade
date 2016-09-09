@@ -1,0 +1,58 @@
+mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
+    .form-group
+        label(for=id)= label
+        select.form-control.list-group(
+            id=id,
+            data-bind='' +
+            'options: #{options}, ' +
+            'value: #{value}, ' +
+            'optionsText: "#{optionsText}", ' +
+            'optionsCaption: "#{optionsCaption}"'
+        )
+
+#add-op.modal.fade(role='dialog',tabindex="-1", data-bind="with: program")
+    .modal-dialog(role='document')
+        .modal-content(data-bind="with: modal")
+            form(data-bind="submit: save")
+                .modal-header
+                    h4.modal-title Add operator
+                .modal-body
+                    +form-group-options('operator',
+                                          'Operator',
+                                          '$parent.availableOperators',
+                                          'selectedOperator',
+                                          'name',
+                                          'Select operator')
+                    .form-group(data-bind="visible: outputStreamVisible")
+                        label(for='output-stream-name') Output stream name
+                        input#output-stream-name.form-control(
+                            type='text',
+                            placeholder="Output stream name",
+                            data-bind="value: outputStream"
+                        )
+                    .form-group#form-lambda(data-bind="visible: lambdaVisible")
+                        label(for='field-lambda') Lambda
+                        .input-group
+                            .input-group-addon(data-bind="text: lambdaInput()")
+                            input#field-lambda.form-control(
+                                type='text',
+                                placeholder="Lambda",
+                                data-bind="value: lambda"
+                            )
+                            .input-group-addon(data-bind="text: lambdaOutput()")
+                    .form-group#form-rate(data-bind="visible: rateVisible")
+                        label(for='field-rate') Rate (msec)
+                        input#field-rate.form-control(
+                            type='number',
+                            placeholder="Rate",
+                            data-bind="value: rate"
+                        )
+                    .form-group#form-output-module(data-bind="visible: outputModuleVisible")
+                        label(for='output-module') Output module
+                        select#output-module.form-control.list-group(
+                            data-bind='' +
+                            'options: $parent.actuators, ' +
+                            'value: selectedOutputModule')
+                .modal-footer
+                    button.btn.btn-default(data-dismiss="modal") Close
+                    button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save

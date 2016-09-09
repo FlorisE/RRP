@@ -1,0 +1,14 @@
+extends layout/layout
+
+block page_scripts
+    script(
+        data-main="/js/index",
+        src="/js/lib/require.js"
+    )
+
+block content
+    .row.fill
+        include index/editor
+        include index/menu
+    include index/modal/add-op
+    include index/modal/add-program
