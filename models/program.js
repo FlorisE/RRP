@@ -1,45 +1,41 @@
 var mappers = require('./mappers');
-var queriesModule = require('./queries');
 var senderModule = require('./sender');
+var streamModule = require('./stream');
+var sensorModule = require('./sensor');
+var actuatorModule = require('./actuator');
+var operatorModule = require('./operator');
+var helperModule = require('./helper');
+var uuid = require('node-uuid');
 
 class Program {
-    constructor(driver, io, id) {
-        this.driver = driver;
-        this.io = io;
+    constructor(id, io, session) {
         this.id = id;
+        this.io = io;
+        this.session = session;
         this.maps = mappers.Mappers;
     }
 
-    getExecutor(target) {
-        if (target === "get-all") {
-            return this.getAll;
-        } else {
-            return this[target];
-        }
-    }
-
     add(msg) {
-        var session = this.driver.session();
-        var cypher = "CREATE (n:Program { name: '" + msg.name + "'}) " +
-                      "RETURN id(n) as id, n.name as name";
-        return session.run(cypher).catch(
+        var cypher = `CREATE (n:Program { name: '${msg.name}', 
+                                          uuid: '${uuid.v4()}'}) 
+                      RETURN n.uuid as id, n.name as name`;
+        return this.session.run(cypher).catch(
             function(error) {
                 console.log(error);
             }
         ).then(
             (results) =>
                 this.io.emit(
-                    id,
-                    results.records.map(mapProgram)
+                    this.id,
+                    results.records.map(this.maps.mapProgram)
                 )
         );
     }
 
     getAll(msg) {
-        var session = this.driver.session();
-        session.run(
+        this.session.run(
             "MATCH (n:Program) " +
-            "RETURN id(n) as id, n.name as name"
+            "RETURN n.uuid as id, n.name as name"
         ).then(
             (results) =>
                 this.io.emit(
@@ -48,12 +44,7 @@ class Program {
                 )
         ).catch(function(error) {
             console.log(error);
-        }).then(
-            () => {
-                session.close();
-                logTime("Finished get programs");
-            }
-        );
+        });
     }
 
     get(msg) {
@@ -62,59 +53,53 @@ class Program {
         }
 
         var programId = msg.id;
+        var logwrapper = (location) => (msg) => console.log(`${location}: ${msg}`);
 
-        if (programId < 0) {
-            throw "Invalid program id";
-        }
+        var stream = new streamModule.Stream(this.id, this.io, this.session);
+        var sensor = new sensorModule.Sensor(this.id, this.io, this.session);
+        var actuator = new actuatorModule.Actuator(this.id, this.io, this.session);
+        var operator = new operatorModule.Operator(this.id, this.io, this.session);
+        var helper = new helperModule.Helper(this.id, this.io, this.session);
 
-        var session = this.driver.session();
-        var queries = new queriesModule.Queries(session);
-        var sender = new senderModule.Sender(this.id, this.io, this.maps);
-        queries.sensors().catch(
-            (error) => console.log(error)
+        sensor.getFromDb().then(
+            sensor.sendToClient(),
+            logwrapper("sensors")
         ).then(
-            sender.sensors()
+            stream.getFromDb(programId),
+            logwrapper("sensors")
         ).then(
-            queries.streams(programId)
-        ).catch(
-            (error) => console.log(error)
+            stream.sendToClient(),
+            logwrapper("streams")
         ).then(
-            sender.streams()
+            actuator.getFromDb(programId),
+            logwrapper("streams")
         ).then(
-            queries.actuationModules(programId)
-        ).catch(
-            (error) => console.log(error)
+            actuator.sendToClient(programId),
+            logwrapper("actuators")
         ).then(
-            sender.outputModules(programId)
+            operator.getFromDbWithLambda(programId),
+            logwrapper("actuators")
         ).then(
-            queries.relations(programId)
-        ).catch(
-            (error) => console.log(error)
+            operator.sendToClient(),
+            logwrapper("relations")
         ).then(
-            sender.relations()
+            operator.getFromDbWithHelper(programId),
+            logwrapper("relations")
         ).then(
-            queries.compositeRelations(programId)
-        ).catch(
-            (error) => console.log(error)
+            operator.sendToClient(),
+            logwrapper("composite relations")
         ).then(
-            sender.compositeRelations()
+            helper.getFromDb(),
+            logwrapper("composite relations")
         ).then(
-            queries.lambdas()
-        ).catch(
-            (error) => console.log(error)
+            helper.sendToClient(),
+            logwrapper("lambdas")
         ).then(
-            sender.lambdas()
+            operator.getAvailableFromDb(),
+            logwrapper("lambdas")
         ).then(
-            queries.availableOperators()
-        ).catch(
-            (error) => console.log(error)
-        ).then(
-            sender.availableOperators()
-        ).then(
-            () => {
-                session.close();
-                logTime("Finished get");
-            }
+            operator.sendAvailableToClient(),
+            logwrapper("available operators")
         );
     }
 }

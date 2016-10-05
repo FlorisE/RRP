@@ -32,8 +32,9 @@ define([
         'jquery',
         'bootstrap',
         'connectionhandler',
-        'program',
-        'program_modal',
+        'models/program',
+        'models/modal/program_modal',
+        'models/modal/helper_modal',
         'knockout',
         'knockout.validation',
         'jsplumb'
@@ -44,13 +45,14 @@ define([
               ConnectionHandler,
               Program,
               ProgramModal,
+              HelperModal,
               ko) {
     jsPlumb.ready(function () {
 
         operatorTypes = {
             "filter": ['output-stream', "lambda"],
             "map": ['output-stream', "lambda"],
-            "samples": ['output-stream', "rate"],
+            "sample": ['output-stream', "rate"],
             "timestamp": ['output-stream'],
             "subscribe": ["output-module"]
         };
@@ -71,6 +73,7 @@ define([
             programs: ko.observableArray(),
             program: ko.observable(),
             programModal: ko.observable(),
+            helperModal: ko.observable(),
             addInitial: function(initial) {
                 console.log(initial);
                 return true;
@@ -82,13 +85,25 @@ define([
         var ch = new ConnectionHandler(instance, viewModel());
 
         viewModel().loadProgram = function(program) {
-            viewModel().program(new Program(ch, instance));
+            viewModel().program(new Program(ch, instance, program.id));
             instance.reset();
             ch.transmitter.loadProgram(program.id);
+            return true;
         };
 
         viewModel().addProgramModal = function () {
-            viewModel().programModal(new ProgramModal(viewModel(), ch))
+            viewModel().programModal(new ProgramModal(viewModel(), ch));
+            return true;
+        };
+
+        viewModel().addHelper = function () {
+            viewModel().helperModal(new HelperModal(viewModel(), ch));
+            return true;
+        };
+
+        viewModel().editHelper = function() {
+            viewModel().helperModal(new HelperModal(viewModel(), ch, this));
+            return true;
         };
 
         ko.applyBindings(viewModel);

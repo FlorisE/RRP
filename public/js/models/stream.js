@@ -1,20 +1,23 @@
-define(['dragger'], function (Dragger) {
+define(['./dragger'], function (Dragger) {
     function stream(jsplumb, connectionHandler, stream) {
         var dragger = null;
         var m = new Mottle({ smartClicks:true });
 
-        m.on("#stream" + stream.id, "tap", function(e) {
-            stream.menuVisible(!stream.menuVisible());
+        m.on("#stream" + stream.id(), "tap", function(e) {
+            var targetState = !stream.menuVisible();
+            stream.program.hideAllMenus();
+            stream.menuVisible(targetState);
+            return true;
         });
 
         jsplumb.draggable(
-            $("#stream" + stream.id),
+            $("#stream" + stream.id()),
             {
                 start: function (params) {
                     t = connectionHandler.transmitter;
                     dragger = new Dragger(
-                        stream.x,
-                        stream.y,
+                        stream.x(),
+                        stream.y(),
                         t.updateStream.bind(t),
                         params.el
                     );

@@ -8,7 +8,7 @@ define(['knockout'], function (ko) {
 
         save () {
             this.connectionHandler.transmitter.addProgram(this.name());
-            return true;
+            $('#add-program').modal('hide');
         }
     }
 

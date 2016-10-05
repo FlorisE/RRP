@@ -9,8 +9,8 @@ define(['knockout'], function (ko) {
 
         dragMove(x, y) {
             var data = ko.dataFor(this.el);
-            data.x = x;
-            data.y = y;
+            data.x(x);
+            data.y(y);
         }
 
         dragStop(x, y) {

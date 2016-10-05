@@ -2,27 +2,52 @@
     .panel.panel-primary
         .panel-heading
             .row
-                .col-md-10
+                .col-md-9
                     .h1.panel-title Programs
-                .col-md-2
+                .col-md-3
                     button.btn.btn-default.btn-xs(
-                    data-bind="click: addProgramModal"
-                    data-toggle="modal",
-                    data-target="#add-program"
+                        data-bind="click: addProgramModal"
+                        data-toggle="modal",
+                        data-target="#add-program"
                     )
                         span.glyphicon.glyphicon-plus
+                        | Add
         .panel-body
             .list-group(data-bind='foreach: programs')
-                a.list-group-item(href="#", data-bind='attr: { id: "program" + id }, text: name, click: $root.loadProgram')
+                a.list-group-item(
+                    href="#",
+                    data-bind='attr: { id: "program" + id }, ' +
+                               'text: name, ' +
+                               'click: $root.loadProgram, ' +
+                               'css: {active: $root.program.id == id}')
     .panel.panel-primary
         .panel-heading
             h3.panel-title Sensors
         .panel-body(data-bind="with: program")
             .list-group(data-bind='foreach: availableSensors')
-                a.list-group-item(href="#", data-bind='attr: { id: "sensor" + id }, text: name, click: $parent.addStream')
+                a.list-group-item(
+                    href="#",
+                    data-bind='attr: { id: "sensor" + id }, ' +
+                               'text: name, click: $parent.addStream')
     .panel.panel-primary
         .panel-heading
-            h3.panel-title Helpers
+            .row
+                .col-md-9
+                    .h1.panel-title Helpers
+                .col-md-3
+                    button.btn.btn-default.btn-xs(
+                    data-bind="click: addHelper"
+                    data-toggle="modal",
+                    data-target="#add-helper"
+                    )
+                        span.glyphicon.glyphicon-plus
+                        | Add
         .panel-body(data-bind="with: program")
             .list-group(data-bind='foreach: helpers')
-                a.list-group-item(href="#", data-bind='attr: { id: "helper" + id }, text: name')
+                a.list-group-item(
+                    href="#",
+                    data-bind='attr: { id: "helper" + id }, ' +
+                               'text: name, ' +
+                               'click: $root.editHelper'
+                    data-toggle="modal",
+                    data-target="#add-helper")

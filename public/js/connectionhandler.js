@@ -20,13 +20,16 @@ define(
         connect() {
             this.socket = io.connect('//localhost:3000');
 
-            this.socket.on('connect', (connection) => this.connectionEstablished(this.socket, connection, this));
+            this.socket.on('connect',
+                (connection) => this.connectionEstablished(this.socket,
+                                                           connection)
+            );
             this.socket.on('error', function(error) {
                 console.log(error);
             })
         }
 
-        connectionEstablished(socket, connection, handler) {
+        connectionEstablished(socket, connection) {
             this.receiver = new Receiver(this.id, this.socket, this.viewModel, this.programModel);
             this.transmitter = new Transmitter(this.id, this.socket);
         }

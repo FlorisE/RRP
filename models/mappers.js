@@ -3,7 +3,7 @@ class Mappers {
         return {
             type: "sensor",
             action: "add",
-            id: item.id.low,
+            id: item.id,
             name: item.name
         };
     }
@@ -12,40 +12,55 @@ class Mappers {
         return {
             type: "program",
             action: "add",
-            id: record.get("id").low,
+            id: record.get("id"),
             name: record.get("name")
         }
     }
 
-    static mapStream(item) {
+    static mapStreamInternal(item) {
         return {
             type: "stream",
-            action: "add",
-            id: item.id.low,
+            action: item.action,
+            id: item.id,
             name: item.name,
-            x: typeof(item.x) === "number" ? item.x : item.x.toInt(),
-            y: typeof(item.y) === "number" ? item.y : item.y.toInt(),
-            sensorName: item.sensorName
+            x: item.x.low,
+            y: item.y.low,
+            sensorId: item.sensorId,
+            sensorName: item.sensorName,
+            actuatorId: item.actuatorId,
+            actuatorName: item.actuatorName
         };
     }
 
-    static mapRelation(record) {
+    static mapStream(item) {
+        item.action = "add";
+        return this.mapStreamInternal(item);
+    }
+
+    static mapStreamUpdate(item) {
+        item.action = "update";
+        return this.mapStreamInternal(item);
+    }
+
+    static mapRelationInternal(record) {
         var ret = {
             type: "operation",
-            action: "add",
+            action: record.action,
             name: record.name,
-            source: record.source.low,
-            destination: record.destination.low,
-            id: record.id.low
+            source: record.source,
+            destination: record.destination,
+            id: record.id,
         };
-        if (ret.name === "samples") {
-            ret.rate = record.rate ? record.rate.low : null;
-        } else if (ret.name === "combinator") {
-            ret.x = record.x ? record.x.low : 0;
-            ret.y = record.y ? record.y.low : 0;
+        if (ret.name === "sample") {
+            ret.rate = record.rate.low;
+        } else if (ret.name === "combine") {
+            ret.x = record.x;
+            ret.y = record.y;
             ret.lambda = record.lambda;
         } else if (ret.name === "filter" || ret.name === "map") {
             ret.lambda = record.lambda;
+            ret.lambdaId = record.lambdaId;
+            ret.lambdaName = record.lambdaName;
         } else if (ret.name === "subscribe" || ret.name === "timestamp") {
         } else {
             console.log(ret.name);
@@ -53,14 +68,34 @@ class Mappers {
         return ret;
     }
 
+    static mapRelation(record) {
+        record.action = "add";
+        return this.mapRelationInternal(record);
+    }
+
+    static mapRelationUpdate(record) {
+        record.action = "update";
+        return this.mapRelationInternal(record);
+    }
+
     static mapLambda(record) {
         return {
             type: "lambda",
-            action: "add",
-            id: record.get("id").low,
+            action: record.action,
+            id: record.get("id"),
             name: record.get("name"),
             body: record.get("body")
         }
+    }
+
+    static addLambda(record) {
+        record.action = "add";
+        return Mappers.mapLambda(record);
+    }
+
+    static updateLambda(record) {
+        record.action = "update";
+        return Mappers.mapLambda(record);
     }
 
     static mapOperations(record) {
@@ -75,9 +110,7 @@ class Mappers {
         return {
             type: "output_module",
             action: "add",
-            id: record.id.low,
-            x: record.x.low,
-            y: record.y.low,
+            id: record.id,
             name: record.name
         };
     }

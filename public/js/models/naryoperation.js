@@ -1,4 +1,4 @@
-define(['dragger'], function (Dragger) {
+define(['./dragger'], function (Dragger) {
     class NAryOperation {
         constructor(jsplumb, connectionHandler, operation) {
             this.jsplumb = jsplumb;

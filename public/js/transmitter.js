@@ -3,7 +3,7 @@ define([], function () {
         constructor(id, socket) {
             this.id = id;
             this.socket = socket;
-            this.socket.emit(this.id, {type: "program", action: "get-all"});
+            this.socket.emit(this.id, {type: "program", action: "getAll"});
             this.programId = -1;
         }
 
@@ -24,10 +24,24 @@ define([], function () {
         }
 
         addOperator(msg) {
-            msg.action = "add-operator";
-            msg.type = "stream";
-            msg.programId = this.programId;
             if (msg != null) {
+                msg.action = "add";
+                msg.type = "operator";
+                this.send(msg);
+            }
+        }
+
+        updateOperator(msg) {
+            if (msg != null) {
+                msg.action = "edit";
+                msg.type = "operator";
+                this.send(msg);
+            }
+        }
+
+        operator(msg) {
+            if (msg != null) {
+                msg.type = "stream";
                 this.send(msg);
             }
         }
@@ -40,15 +54,43 @@ define([], function () {
             this.socket.emit(this.id, msg);
         }
 
-        updateStream(msg) {
-            msg.type = "stream";
-            msg.action = "update";
-            this.send(msg);
+        updateStream(stream) {
+            this.send({
+                type: "stream",
+                action: "update",
+                id: stream.id(),
+                x: stream.x(),
+                y: stream.y(),
+                name: stream.name()
+            });
         }
 
         updateNAry(msg) {
             msg.type = "operator";
             msg.action = "update-nary";
+            this.send(msg);
+        }
+
+        addHelper(name, body) {
+            this.helper("add", null, name, body);
+        }
+
+        updateHelper(id, name, body) {
+            this.helper("update", id, name, body);
+        }
+
+        helper(action, id, name, body) {
+            var msg = {
+                type: "lambda",
+                action: action,
+                name: name,
+                body: body
+            };
+
+            if (id != null) {
+                msg.id = id;
+            }
+
             this.send(msg);
         }
     }
