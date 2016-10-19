@@ -10,56 +10,56 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
             'optionsCaption: "#{optionsCaption}"'
         )
 
-#add-op.modal.fade(role='dialog',tabindex="-1", data-bind="with: program")
+#add-op.modal.fade(role='dialog',tabindex="-1")
     .modal-dialog(role='document')
-        .modal-content(data-bind="with: modal")
+        .modal-content(data-bind="with: operatorModal")
             form(data-bind="submit: save")
                 .modal-header
                     h4.modal-title(data-bind="text: action")
                 .modal-body
-                    +form-group-options('operator',
-                                          'Operator',
-                                          '$parent.availableOperators',
-                                          'selectedOperator',
-                                          'name',
-                                          'Select operator')
-                    <!-- ko if: outputStreamVisible -->
-                    .form-group(data-bind="visible: outputStreamVisible")
+                    .form-group
+                        label(for='operator') Operator
+                        select#operator.form-control.list-group(
+                            data-bind='options: $root.availableOperators, value: selectedOperator',
+                            disabled
+                        )
+                    .form-group
                         label(for='output-stream-name') Output stream name
                         input#output-stream-name.form-control(
                             type='text',
                             placeholder="Output stream name",
                             data-bind="value: outputStreamName"
                         )
+                    <!-- ko if: name() == "map" || name() == "filter" -->
+                    .well
+                        .alert.alert-info This operator requires either a body to be implemented or a helper to be specified.
+                        .form-group#form-lambda
+                            label(for='field-lambda') Body
+                            .input-group
+                                span.input-group-addon
+                                    input(type="radio", name="lambda", value="body", data-bind="checked: lambdaOption")
+                                //.input-group-addon(data-bind="text: lambdaInput(), enable: lambdaActive")
+                                input#field-lambda.form-control(
+                                    type='text',
+                                    placeholder="Body",
+                                    data-bind="value: body, enable: lambdaOption() == \"body\""
+                                )
+                                //.input-group-addon(data-bind="text: lambdaOutput()")
+                        .form-group#form-helper
+                            label(for='field-helper') Helper
+                            .input-group
+                                span.input-group-addon
+                                    input(type="radio", name="lambda", value="helper", data-bind="checked: lambdaOption")
+                                select#field-helper.form-control.list-group(
+                                    type='text',
+                                    data-bind='options: $parent.helpers, ' +
+                                    '          optionsText: "name", ' +
+                                    '          value: selectedHelper, ' +
+                                    '          enable: lambdaOption() == \"helper\"'
+                                )
                     <!-- /ko -->
-                    <!-- ko if: lambdaVisible -->
-                    .form-group#form-lambda(data-bind="visible: lambdaVisible")
-                        label(for='field-lambda') Lambda
-                        .input-group
-                            span.input-group-addon
-                                input(type="radio", name="lambda", value="lambda", data-bind="checked: lambdaOption")
-                            .input-group-addon(data-bind="text: lambdaInput(), enable: lambdaActive")
-                            input#field-lambda.form-control(
-                                type='text',
-                                placeholder="Lambda",
-                                data-bind="value: lambda, enable: lambdaActive"
-                            )
-                            .input-group-addon(data-bind="text: lambdaOutput()")
-                    .form-group#form-helper(data-bind="visible: lambdaVisible")
-                        label(for='field-helper') Helper
-                        .input-group
-                            span.input-group-addon
-                                input(type="radio", name="lambda", value="helper", data-bind="checked: lambdaOption")
-                            select#field-helper.form-control.list-group(
-                                type='text',
-                                data-bind='options: $parent.helpers, ' +
-                                '          optionsText: "name", ' +
-                                '          value: selectedHelper, ' +
-                                '          enable: helperActive'
-                            )
-                    <!-- /ko -->
-                    <!-- ko if: rateVisible -->
-                    .form-group#form-rate(data-bind="visible: rateVisible")
+                    <!-- ko if: name() == "sample" -->
+                    .form-group#form-rate
                         label(for='field-rate') Rate (msec)
                         input#field-rate.form-control(
                             type='number',
@@ -67,8 +67,8 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             data-bind="value: rate"
                         )
                     <!-- /ko -->
-                    <!-- ko if: outputModuleVisible -->
-                    .form-group#form-output-module(data-bind="visible: outputModuleVisible")
+                    <!-- ko if: name() == "subscribe" -->
+                    .form-group#form-output-module
                         label(for='output-module') Output module
                         select#output-module.form-control.list-group(
                             data-bind='' +

@@ -1,4 +1,3 @@
-var mappers = require('./mappers');
 var sender = require('./sender');
 
 class Actuator {
@@ -6,8 +5,7 @@ class Actuator {
         this.id = id;
         this.io = io;
         this.session = session;
-        this.maps = mappers.Mappers;
-        this.sender = sender(id, io);
+        this.send = sender(id, io);
     }
 
     getFromDb(programId) {
@@ -18,12 +16,19 @@ class Actuator {
     }
 
     sendToClient() {
-        return this.sender(
-            (record) => this.maps.mapOutputModules(record.get("actuator"))
+        return this.send(
+            (record) => this._mapActuators(record.get("actuator"))
         );
+    }
+
+    _mapActuators(record) {
+        return {
+            type: "actuator",
+            action: "add",
+            id: record.id,
+            name: record.name
+        };
     }
 }
 
-module.exports = {
-    Actuator: Actuator
-};
+module.exports = Actuator;

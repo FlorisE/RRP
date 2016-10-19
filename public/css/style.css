@@ -10,6 +10,10 @@
     min-width: 125px;
 }
 
+.draggable {
+    position: absolute;
+}
+
 .stream {
     background: linear-gradient(green, darkgreen);
     font-size: larger;
@@ -36,7 +40,7 @@
 }
 
 .actuator {
-    background: linear-gradient(red, darkred);
+    background: linear-gradient(magenta, darkmagenta);
     font-size: larger;
     padding: 10px 20px 10px 20px;
     color: white;
@@ -44,7 +48,7 @@
 }
 
 .actuator:hover {
-    background: linear-gradient(orangered, red);
+    background: linear-gradient(mediumpurple, purple);
 }
 
 .nary {

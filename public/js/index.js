@@ -24,38 +24,35 @@ require.config({
         bootstrap: 'lib/bootstrap',
         jquery: 'lib/jquery',
         "knockout.validation": "lib/knockout.validation",
-        jsplumb: "lib/jsplumb"
+        jsplumb: "lib/jsplumb",
+        wu: "lib/wu"
     }
 });
 
 define([
         'jquery',
         'bootstrap',
-        'connectionhandler',
-        'models/program',
-        'models/modal/program_modal',
-        'models/modal/helper_modal',
+        'util/ConnectionHandler',
+        'modules/DependencyInjector',
         'knockout',
-        'knockout.validation',
-        'jsplumb'
+        // some implicit dependencies
+        "knockout.validation"
     ],
-    function (
-              jQuery,
+    function (jQuery,
               bootstrap,
               ConnectionHandler,
-              Program,
-              ProgramModal,
-              HelperModal,
+              DependencyInjector,
               ko) {
+
     jsPlumb.ready(function () {
 
-        operatorTypes = {
+        /*operatorTypes = {
             "filter": ['output-stream', "lambda"],
             "map": ['output-stream', "lambda"],
             "sample": ['output-stream', "rate"],
             "timestamp": ['output-stream'],
             "subscribe": ["output-module"]
-        };
+        };*/
 
         var instance = jsPlumb.getInstance($('#editor-container'));
         instance.importDefaults({
@@ -67,47 +64,15 @@ define([
                 ]
         });
 
-        id = $('#id').html();
+        var editor = DependencyInjector.editorModule.getEditor();
 
-        viewModel = ko.validatedObservable({
-            programs: ko.observableArray(),
-            program: ko.observable(),
-            programModal: ko.observable(),
-            helperModal: ko.observable(),
-            addInitial: function(initial) {
-                console.log(initial);
-                return true;
-            }
-        });
+        ConnectionHandler.connect(
+            function () {
+                DependencyInjector.programModule.loadAll();
+            },
+            console.log
+        );
 
-        var programModel = viewModel().program();
-
-        var ch = new ConnectionHandler(instance, viewModel());
-
-        viewModel().loadProgram = function(program) {
-            viewModel().program(new Program(ch, instance, program.id));
-            instance.reset();
-            ch.transmitter.loadProgram(program.id);
-            return true;
-        };
-
-        viewModel().addProgramModal = function () {
-            viewModel().programModal(new ProgramModal(viewModel(), ch));
-            return true;
-        };
-
-        viewModel().addHelper = function () {
-            viewModel().helperModal(new HelperModal(viewModel(), ch));
-            return true;
-        };
-
-        viewModel().editHelper = function() {
-            viewModel().helperModal(new HelperModal(viewModel(), ch, this));
-            return true;
-        };
-
-        ko.applyBindings(viewModel);
-
-        ch.connect();
+        ko.applyBindings(editor);
     });
 });

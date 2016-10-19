@@ -2,11 +2,14 @@ var express = require('express');
 var router = express.Router();
 var neo4j = require('neo4j-driver').v1;
 var driver = neo4j.driver("bolt://localhost",
-                          neo4j.auth.basic("neo4j", "neo4j"));
-var programModule = require('../models/program');
-var streamModule = require('../models/stream');
-var lambdaModule = require('../models/lambda');
-var operatorModule = require('../models/operator');
+                          neo4j.auth.basic("neo4j", "rrp"));
+
+var modules = new Map([
+    ["program", require('../models/program')],
+    ["stream", require('../models/stream')],
+    ["helper", require('../models/helper')],
+    ["operator", require('../models/operator')]
+]);
 
 function clientHandler(req, res, socket) {
 
@@ -22,13 +25,6 @@ function clientHandler(req, res, socket) {
             console.log(dateTime + ": " + msg);
         }
     }
-
-    var modules = new Map([
-        ["program", programModule.Program],
-        ["stream", streamModule.Stream],
-        ["lambda", lambdaModule.Lambda],
-        ["operator", operatorModule.Operator]
-    ]);
 
     var moduleFactory = (() => {
         var moduleInstances = new Map();
@@ -58,11 +54,17 @@ function clientHandler(req, res, socket) {
         return executor.bind(module);
     }
 
-    socket.on(req.id, function (msg) {
-        logTime("Received " + msg.action);
+    socket.on(req.id, function (msg, callback) {
+        logTime(`Received ${msg.action} on ${msg.type}`);
 
         var session = driver.session();
-        getDispatcher(msg.type, msg.action, session)(msg);
+        var dispatcher = getDispatcher(msg.type, msg.action, session);
+        try {
+            dispatcher(msg, callback);
+        } catch (err) {
+            console.log(err);
+        }
+
         session.close();
     });
 

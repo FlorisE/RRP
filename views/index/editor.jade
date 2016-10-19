@@ -1,40 +1,37 @@
-mixin editor-item(bindTo, addRendered, removeRendered)
-    div(id=bindTo, data-bind='foreach: { data: #{bindTo}, afterAdd: afterAddStream }')
-        .box.stream-container.text-center(
-            data-bind='attr: { id: "stream" + id() }, style: { left: xpx, top: ypx }')
-            div(data-bind="css: streamClass")
+#editor-container.col-md-10(data-bind="with: loadedProgram")
+    div#streams(data-bind='foreach: { data: streams, afterAdd: afterAddStream }')
+        .box.stream-container.text-center(data-bind='attr: { id: "stream" + id() }, style: { left: xpx, top: ypx }')
+            div.stream-item(data-bind="css: streamClass")
                 p(data-bind='text: name')
-
-            if addRendered
+            .btn-group(data-bind='visible: menuVisible')
                 button.btn.btn-default.btn-lg.stream-menu(
-                    data-bind='' +
-                    'visible: menuVisible, ' +
-                    'click: $parent.addOperator',
-                    data-toggle="modal",
-                    data-target="#add-op"
+                    data-bind='visible: menuVisible && addable',
+                    data-toggle="dropdown"
                 )
-                    span.glyphicon.glyphicon-plus
-                span
-            if removeRendered
-                button.btn.btn-danger.btn-lg.stream-menu(
-                    data-bind='' +
-                    'visible: menuVisible, ' +
-                    'click: $parent.removeStream'
+                    span.glyphicon.glyphicon-flash
+                button.btn.btn-default.btn-lg.stream-menu(
+                    data-bind='visible: menuVisible && edittable, ' +
+                              'click: $parent.editStream',
+                    data-toggle="modal",
+                    data-target="#edit-op"
                     )
+                    span.glyphicon.glyphicon-pencil
+                button.btn.btn-danger.btn-lg.stream-menu(
+                    data-bind='visible: menuVisible && deletable, ' +
+                              'click: deleteClicked'
+                )
                     span.glyphicon.glyphicon-remove
-
-#editor-container.col-md-10(data-bind="with: program")
-    +editor-item('sensors', true, true)
-    +editor-item('streams', true, true)
-    +editor-item('actuators', false, true)
+                ul.dropdown-menu(data-bind="foreach: $root.availableOperators")
+                    li
+                        a(data-bind="text: $data, click: $parent.addOperator, attr: { dataType: $data }",
+                          data-toggle='modal', data-target='#add-op')
 
     div(data-bind='foreach: { data: unaryoperators, afterAdd: afterAddUnaryOperator }')
         div.operation.hidden(data-bind='attr: { id: "operator" + id() }, ' +
-                               'text: label(), ' +
-                               'click: $parent.operatorClicked',
+                               'text: name'
                     data-toggle='modal', data-target='#add-op' )
     div(data-bind='foreach: { data: naryoperators, afterAdd: afterAddNAryOperator }')
-        .box.nary(
+        .draggable.nary(
             data-bind='attr: { id: "operator" + id() }, ' +
                        'style: { left: xpx, top: ypx }')
             p(data-bind='text: name')

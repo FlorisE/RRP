@@ -23,7 +23,6 @@ define(['knockout'], function (ko) {
                     ]
                 ]
             });
-            operation.connected(true);
         }
     }
 });

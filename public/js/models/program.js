@@ -4,308 +4,280 @@ define(
         './modal/add-op',
         './unaryoperation',
         './naryoperation',
-        './stream',
+        '../util/box',
+        '../util/ObservableMapToKOObservableArray',
+        '../util/ConnectionHandler',
+        '../util/JSPlumbInstance',
+        './Operations/Operation',
         '../lib/knockout.mapping'
     ],
     function (ko,
               OperatorModal,
               unaryoperation,
               NAryOperation,
-              stream) {
+              box,
+              mtoa,
+              ConnectionHandler,
+              instance,
+              Operation) {
 
-    class Program {
-        constructor(connectionHandler, jsplumb, id) {
-            var self = this;
-            this.connectionHandler = connectionHandler;
-            this.id = id;
-            this.jsplumb = jsplumb;
+        class Program {
+            constructor(streamModule,
+                        operationsModule,
+                        editorModule,
+                        programModule,
+                        id,
+                        name)
+            {
+                if (!streamModule ||
+                    !operationsModule ||
+                    !editorModule ||
+                    !programModule)
+                {
+                    throw "Missing injected modules";
+                }
 
-            this.sensors = ko.observableArray();
-            this.streams = ko.observableArray();
-            this.naryoperators = ko.observableArray();
-            this.unaryoperators = ko.observableArray();
-            this.helpers = ko.observableArray();
-            this.selectedStream = ko.observable();
-            this.selectedOperator = ko.observable();
-            this.modal = ko.observable();
-            this.availableOperators = ko.observableArray()
-                .extend({ required: true });
-            this.actuators = ko.observableArray();
-            this.availableActuators = ko.observableArray();
-            this.availableSensors = ko.observableArray();
+                var self = this;
+                this.id = ko.observable(id);
+                this.name = ko.observable(name).extend({ required: true });
 
-            this.boxes = ko.computed(function () {
-                return this.streams()
-                           .concat(this.sensors())
-                           .concat(this.actuators());
-            }, this);
+                this.streamModule = streamModule;
+                this.operationsModule = operationsModule;
+                this.editorModule = editorModule;
+                this.programModule = programModule;
 
-            this.operators = ko.computed(function () {
-                return this.naryoperators()
-                           .concat(this.unaryoperators())
-            }, this);
+                this.editor = editorModule.getEditor();
 
-            this.afterAddStream = function(element) {
-                var data = ko.dataFor(element);
-                stream(jsplumb, connectionHandler, data);
+                this.streams = ko.observableArray();
 
-                // because sometimes operators arrive before streams
-                // are rendered, we check again here
-                var unconnectedIn = data.in().filter(
-                    (item) => !item.connected()
-                );
+                //operationsModule.program = this;
+                this.operations = ko.observableArray();
 
-                unconnectedIn.forEach(function (operation) {
-                    unaryoperation(operation, jsplumb);
-                });
+                mtoa(operationsModule, this.operations);
+                this.naryoperators = ko.computed(function () {
+                    return this.operations().filter(
+                        (operation) => operation["sources"]
+                    )
+                }, this);
 
-                var unconnectedOut = data.out().filter(
-                    (operation) => !operation.connected()
-                );
+                this.unaryoperators = ko.computed(function () {
+                    return this.operations().filter(
+                        (operation) => operation["source"]
+                    )
+                }, this);
 
-                unconnectedOut.forEach(function (operation) {
-                    unaryoperation(operation, jsplumb);
-                });
-            };
+                this.selectedStream = ko.observable();
+                this.selectedOperator = ko.observable();
+                this.availableOperators = ko.observableArray()
+                    .extend({ required: true });
+                this.availableActuators = ko.observableArray();
 
-            this.afterAddUnaryOperator = function(element) {
-                var data = ko.dataFor(element);
-                unaryoperation(data, jsplumb);
-            };
+                /*this.operators = ko.computed(function () {
+                    return this.naryoperators()
+                        .concat(this.unaryoperators())
+                }, this);*/
 
-            this.afterAddNAryOperator = function(element) {
-                var data = ko.dataFor(element);
-                var operation = new NAryOperation(
-                    jsplumb,
-                    connectionHandler,
-                    data
-                );
-                operation.nary();
-            };
-
-            this.addOperator = function(stream) {
-                self.modal(new OperatorModal(self.connectionHandler, self));
-                self.modal().originStream(stream);
-                return true;
-            };
-
-            this.addStream  = function(stream) {
-                var msg = {
-                    x: Math.round($('#editor-container').width()/2),
-                    y: Math.round($('#editor-container').height()/2),
-                    type: "stream",
-                    action: "add",
-                    sensorId: stream.id,
-                    name: stream.name
+                // knockout
+                this.afterAddStream = function(element) {
+                    var stream = ko.dataFor(element);
+                    stream.draw();
                 };
-                connectionHandler.transmitter.addStream(msg);
-            };
 
-            this.removeStream = function(stream) {
-                connectionHandler.transmitter.removeStream(stream.id());
-            };
+                    /*
+                    box(instance, data);
 
-            this.removedStream = function(stream) {
-                function remove(needle, haystack) {
-                    var stream = haystack().find(
-                        (item) => item.id() === needle.id
+                    // because sometimes operators arrive before streams
+                    // are rendered, we check again here
+                    var unconnectedIn = data.in().filter(
+                        (item) => !item.connected()
                     );
-                    if (stream !== undefined) {
-                        jsplumb.detachAllConnections(
-                            $('#stream' + stream.id())
-                        );
-                        haystack.remove(stream);
-                        return true;
+
+                    unconnectedIn.forEach(function (operation) {
+                        unaryoperation(operation, jsplumb);
+                    });
+
+                    var unconnectedOut = data.out().filter(
+                        (operation) => !operation.connected()
+                    );
+
+                    unconnectedOut.forEach(function (operation) {
+                        unaryoperation(operation, jsplumb);
+                    });
+                };*/
+
+                this.afterAddUnaryOperator = function(element) {
+                    var data = ko.dataFor(element);
+                    unaryoperation(data, instance);
+                };
+
+                this.afterAddNAryOperator = function(element) {
+                    var data = ko.dataFor(element);
+                    data.draw();
+                };
+
+                this.addOperator = function(stream) {
+                    self.operatorModal(new Operation());
+                    self.operatorModal().source(stream.id());
+                    return true;
+                };
+
+                this.editStream = function(stream) {
+                    if (stream.streamClass == "sensor") {
+                        self.editor.updateSensorInstance(stream);
+                    } else {
+                        console.log(stream.in());
                     }
+                };
+
+                this.removeStream = function(stream) {
+                    connectionHandler.transmitter.removeStream(stream.id());
+                };
+
+                this.removedStream = function(stream) {
+                    function remove(needle, haystack) {
+                        var stream = haystack().find(
+                            (item) => item.id() === needle.id
+                        );
+                        if (stream !== undefined) {
+                            jsplumb.detachAllConnections(
+                                $('#stream' + stream.id())
+                            );
+                            haystack.remove(stream);
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    return remove(stream, this.streams) ||
+                        remove(stream, this.actuators) ||
+                        remove(stream, this.sensors);
+                };
+
+                this.hideAllMenus = function () {
+                    this.streams().forEach(function(stream) {
+                        stream.menuVisible(false);
+                    })
+                };
+
+                this.isValid = ko.computed(function () {
+                    this.name();
+                    return this.name.isValid();
+                }, this);
+            }
+
+            addOperationToModel(operation) {
+                var sourceStream = operation.source;
+                var destinationStream = operation.destination;
+                if (operation.name != "combinator") {
+                    var operatorModel = ko.mapping.fromJS(operation);
+
+                    operatorModel.connected = ko.observable(false);
+                    operatorModel.lambdaName = ko.observable(operation.lambdaName);
+
+                    operatorModel.lambdaOption = ko.computed(function () {
+                            return this.lambdaName() != null ? "helper" : "lambda"
+                        },
+                        operatorModel
+                    );
+
+                    operatorModel.label = ko.computed(function() {
+                        return this.lambdaName() != null ?
+                            this.name() + "(" +  this.lambdaName() + ")"
+                            : this.name();
+                    }, operatorModel);
+
+                    operatorModel.helper = ko.computed(
+                        () => operatorModel.lambdaName() != null ?
+                                this.helpers().find(
+                                    (element) => element.id() == operation.lambdaId
+                                )
+                                : null
+                        , this);
+
+                    operatorModel.sourceInstance = ko.computed(function() {
+                        if (operatorModel.source() != null) {
+                            return this.findStreamById(operatorModel.source())
+                        }
+                        return null;
+                    }, this);
+
+                    operatorModel.destinationInstance = ko.computed(function() {
+                        if (operatorModel.destination() != null) {
+                            return this.findStreamById(operatorModel.destination())
+                        }
+                        return null;
+                    }, this);
+
+                    operatorModel.selectedActuator = ko.computed(function() {
+                            if (operation.name != 'subscribe') {
+                                return null;
+                            }
+                            var destination = operatorModel.destinationInstance();
+                            return destination ?
+                                destination.actuatorInstance() :
+                                null;
+                        },
+                        this
+                    );
+
+                    this.unaryoperators.push(operatorModel);
+                } else {
+                    var found = false;
+                    for (var index in this.naryoperators()) {
+                        var operatorFromList = this.naryoperators()[index];
+                        if (operatorFromList.id == operation.id) {
+                            found = true;
+                        }
+                    }
+                    operation.source = sourceStream;
+                    operation.destination = destinationStream;
+                    operation.connected = ko.observable(true);
+                    if (!found) {
+                        operation.xpx = ko.computed(() => operation.x + "px");
+                        operation.ypx = ko.computed(() => operation.y + "px");
+
+                        this.naryoperators.push(operation);
+                    } else {
+                        this.addInForNAry(operation);
+                    }
+                }
+            }
+
+            load() {
+                this.streamModule.clear();
+                this.operationsModule.clear();
+                this.editorModule.load();
+            }
+
+            modal() {
+                return this;
+            }
+
+            validate() {
+                var errors = ko.validation.group([this.name]);
+                if (errors().length > 0) {
+                    errors.showAllMessages();
                     return false;
                 }
-
-                return remove(stream, this.streams) ||
-                       remove(stream, this.actuators) ||
-                       remove(stream, this.sensors);
-            };
-
-            this.operatorClicked = function(operator) {
-                self.selectedOperator(operator);
-                self.modal(
-                    new OperatorModal(self.connectionHandler, self, operator)
-                );
                 return true;
-            };
-
-            this.addInForNAry = function (operationdata) {
-                var operation = new NAryOperation(
-                    jsplumb,
-                    connectionHandler,
-                    operationdata
-                );
-                operation.addInForNAry();
-            };
-
-            this.hideAllMenus = function () {
-                this.streams().forEach(function(stream) {
-                    stream.menuVisible(false);
-                })
-            };
-        }
-
-        findStreamById(id) {
-            return this.boxes().find(
-                (element) => element.id() == id
-            );
-        }
-
-        findHelperByName(name) {
-            for (var i = 0; i < this.helpers().length; i++) {
-                var helper = this.helpers()[i];
-                if (helper.name() == name) {
-                    return helper;
-                }
-            }
-            return null;
-        }
-
-        findActuatorById(id) {
-            return this.availableActuators().find(
-                (actuator) => actuator.id == id
-            );
-        }
-
-        findActuatorByName(name) {
-            for (var i = 0; i < this.availableActuators().length; i++) {
-                var actuator = this.availableActuators()[i];
-                if (actuator.name == name) {
-                    return actuator;
-                }
-            }
-            return null;
-        }
-
-        addStreamToModel(stream) {
-            var target = null;
-
-            var streamToAdd = ko.mapping.fromJS(stream);
-            streamToAdd.program = this;
-            streamToAdd.menuVisible = ko.observable(false);
-
-            if (stream.sensorName != null) {
-                streamToAdd.streamClass = "sensor";
-                target = this.sensors;
-            } else if (stream.actuatorName != null) {
-                streamToAdd.streamClass = "actuator";
-                target = this.actuators;
-            } else {
-                streamToAdd.streamClass = "stream";
-                target = this.streams;
             }
 
-            streamToAdd.xpx = ko.computed(() => streamToAdd.x() + "px");
-            streamToAdd.ypx = ko.computed(() => streamToAdd.y() + "px");
-
-            streamToAdd.in = ko.computed(function () {
-                return this.operators().filter(
-                    (operator) => operator.destination() == streamToAdd.id()
-                );
-            }, this);
-            streamToAdd.out = ko.computed(function () {
-                return this.operators().filter(
-                    (operator) => operator.source() == streamToAdd.id()
-                );
-            }, this);
-            streamToAdd.actuatorInstance = ko.computed(function () {
-                if (streamToAdd.actuatorId!==undefined) {
-                    return this.findActuatorById(streamToAdd.actuatorId());
-                } else {
-                    return null;
+            save () {
+                if (!this.validate()) {
+                    return;
                 }
 
-            }, this);
-            target.push(streamToAdd);
-        }
+                if (this.id()) { // update
 
-        updateStreamInModel(stream) {
-            var streamInModel = this.findStreamById(stream.id);
-            streamInModel.name(stream.name);
-        }
-
-        addOperationToModel(operation) {
-            var sourceStream = operation.source;
-            var destinationStream = operation.destination;
-            if (operation.name != "combinator") {
-                var operatorModel = ko.mapping.fromJS(operation);
-
-                operatorModel.connected = ko.observable(false);
-                operatorModel.lambdaName = ko.observable(operation.lambdaName);
-
-                operatorModel.lambdaOption = ko.computed(function () {
-                        return this.lambdaName() != null ? "helper" : "lambda"
-                    },
-                    operatorModel
-                );
-
-                operatorModel.label = ko.computed(function() {
-                    return this.lambdaName() != null ?
-                        this.name() + "(" +  this.lambdaName() + ")"
-                        : this.name();
-                }, operatorModel);
-
-                operatorModel.helper = ko.computed(
-                    () => operatorModel.lambdaName() != null ?
-                            this.helpers().find(
-                                (element) => element.id() == operation.lambdaId
-                            )
-                            : null
-                    , this);
-
-                operatorModel.sourceInstance = ko.computed(function() {
-                    if (operatorModel.source() != null) {
-                        return this.findStreamById(operatorModel.source())
-                    }
-                    return null;
-                }, this);
-
-                operatorModel.destinationInstance = ko.computed(function() {
-                    if (operatorModel.destination() != null) {
-                        return this.findStreamById(operatorModel.destination())
-                    }
-                    return null;
-                }, this);
-
-                operatorModel.selectedActuator = ko.computed(function() {
-                        if (operation.name != 'subscribe') {
-                            return null;
-                        }
-                        var destination = operatorModel.destinationInstance();
-                        return destination ?
-                            destination.actuatorInstance() :
-                            null;
-                    },
-                    this
-                );
-
-                this.unaryoperators.push(operatorModel);
-            } else {
-                var found = false;
-                for (var index in this.naryoperators()) {
-                    var operatorFromList = this.naryoperators()[index];
-                    if (operatorFromList.id == operation.id) {
-                        found = true;
-                    }
-                }
-                operation.source = sourceStream;
-                operation.destination = destinationStream;
-                operation.connected = ko.observable(true);
-                if (!found) {
-                    operation.xpx = ko.computed(() => operation.x + "px");
-                    operation.ypx = ko.computed(() => operation.y + "px");
-
-                    this.naryoperators.push(operation);
-                } else {
-                    this.addInForNAry(operation);
+                } else { // add
+                    this.programModule.create(
+                        this.name(),
+                        () => $('#add-program').modal('hide')
+                    );
                 }
             }
         }
+
+        return Program;
     }
-
-    return Program;
-});
+);

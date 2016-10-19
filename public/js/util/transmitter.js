@@ -16,11 +16,17 @@ define([], function () {
             this.send({type: "program", action: "add", name: name});
         }
 
-        addStream(msg) {
-            msg.programId = this.programId;
-            if (msg != null) {
-                this.send(msg);
-            }
+        addStream(id, name, x, y, parameters, callback) {
+            this.send({
+                x: x,
+                y: y,
+                type: "stream",
+                action: "add",
+                sensorId: id,
+                name: name,
+                programId:  this.programId,
+                parameters: parameters
+            }, callback);
         }
 
         addOperator(msg) {
@@ -50,8 +56,8 @@ define([], function () {
             this.send({type: "stream", action: "remove", id: id});
         }
 
-        send(msg) {
-            this.socket.emit(this.id, msg);
+        send(msg, callback) {
+            this.socket.emit(this.id, msg, callback);
         }
 
         updateStream(stream) {
@@ -62,6 +68,16 @@ define([], function () {
                 x: stream.x(),
                 y: stream.y(),
                 name: stream.name()
+            });
+        }
+
+        updateStreamSensor(id, name, parameters) {
+            this.send({
+                type: "stream",
+                action: "updateStreamSensor",
+                id: id,
+                name: name,
+                parameters: parameters
             });
         }
 

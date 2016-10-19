@@ -1,0 +1,62 @@
+#insert-sensor.modal.fade(role='dialog',tabindex="-1",data-bind="with: insertSensorModal")
+    .modal-dialog(role='document')
+        .modal-content
+            form(data-bind="submit: save")
+                .modal-header
+                    h4.modal-title(data-bind="text: action")
+                .modal-body
+                    .form-group
+                        label(for='field-type') Type
+                        input#field-type.form-control(
+                        placeholder="Name",
+                        data-bind="value: sensor.name()"
+                        disabled
+                        )
+                    .form-group
+                        label(for='field-name') Name
+                        input#field-name.form-control(
+                        placeholder="Name",
+                        data-bind="value: name"
+                        )
+                    <!-- ko foreach: modalParameters -->
+                    <!-- ko if: $data.type == 'list' -->
+                    .row
+                        .col-md-12
+                            label(data-bind="attr: { " +
+                            "for: 'field-'+ $data.name }, " +
+                            "html: $data.name")
+                            .input-group
+                                input.form-control(
+                                placeholder="Name",
+                                data-bind="" +
+                                  "attr: { id: 'field-' + $data.name }, " +
+                                  "value: $data.currentItem, " +
+                                  "valueUpdate: 'keyup', " +
+                                  "event: { keyup: $data.enterKeyPressed }"
+                                )
+                                span.input-group-btn
+                                    button.btn.btn-default(
+                                        type="button",
+                                        data-bind="click: $data.appendItem"
+                                    )
+                                        span.glyphicon.glyphicon-plus
+                                        | Add
+                        <!-- ko foreach: $data.value -->
+                        .col-md-12
+                            .input-group
+                                input.form-control(
+                                    placeholder="Name",
+                                    data-bind="value: $data.value"
+                                )
+                                span.input-group-btn
+                                    button.btn.btn-default(
+                                        type="button",
+                                        data-bind="click: $parent.removeListItem"
+                                    )
+                                        span.glyphicon.glyphicon-remove
+                        <!-- /ko -->
+                    <!-- /ko -->
+                    <!-- /ko -->
+                .modal-footer
+                    a.btn.btn-default(data-dismiss="modal") Close
+                    button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save

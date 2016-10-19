@@ -1,10 +1,8 @@
-var mappers = require('./mappers');
-var senderModule = require('./sender');
-var streamModule = require('./stream');
-var sensorModule = require('./sensor');
-var actuatorModule = require('./actuator');
-var operatorModule = require('./operator');
-var helperModule = require('./helper');
+var Stream = require('./stream');
+var Sensor = require('./sensor');
+var Actuator = require('./actuator');
+var Operator = require('./operator');
+var Helper = require('./helper');
 var uuid = require('node-uuid');
 
 class Program {
@@ -12,10 +10,12 @@ class Program {
         this.id = id;
         this.io = io;
         this.session = session;
-        this.maps = mappers.Mappers;
+        this.logwrapper = (location) => (msg) => {
+            console.log(`${location}: ${msg}`);
+        };
     }
 
-    add(msg) {
+    add(msg, callback) {
         var cypher = `CREATE (n:Program { name: '${msg.name}', 
                                           uuid: '${uuid.v4()}'}) 
                       RETURN n.uuid as id, n.name as name`;
@@ -24,27 +24,35 @@ class Program {
                 console.log(error);
             }
         ).then(
-            (results) =>
+            (results) => {
                 this.io.emit(
                     this.id,
-                    results.records.map(this.maps.mapProgram)
-                )
+                    results.records.map(this._mapProgram)
+                );
+                if (callback) {
+                    callback();
+                }
+            },
+            this.logwrapper("addprogram")
         );
     }
 
-    getAll(msg) {
+    getAll(msg, callback) {
         this.session.run(
             "MATCH (n:Program) " +
             "RETURN n.uuid as id, n.name as name"
         ).then(
-            (results) =>
+            (results) => {
                 this.io.emit(
                     this.id,
-                    results.records.map(this.maps.mapProgram)
-                )
-        ).catch(function(error) {
-            console.log(error);
-        });
+                    results.records.map(this._mapProgram)
+                );
+                if (callback) {
+                    callback();
+                }
+            },
+            this.logwrapper("programs")
+        );
     }
 
     get(msg) {
@@ -53,57 +61,63 @@ class Program {
         }
 
         var programId = msg.id;
-        var logwrapper = (location) => (msg) => console.log(`${location}: ${msg}`);
 
-        var stream = new streamModule.Stream(this.id, this.io, this.session);
-        var sensor = new sensorModule.Sensor(this.id, this.io, this.session);
-        var actuator = new actuatorModule.Actuator(this.id, this.io, this.session);
-        var operator = new operatorModule.Operator(this.id, this.io, this.session);
-        var helper = new helperModule.Helper(this.id, this.io, this.session);
+        var stream = new Stream(this.id, this.io, this.session);
+        var sensor = new Sensor(this.id, this.io, this.session);
+        var actuator = new Actuator(this.id, this.io, this.session);
+        var operator = new Operator(this.id, this.io, this.session);
+        var helper = new Helper(this.id, this.io, this.session);
 
         sensor.getFromDb().then(
             sensor.sendToClient(),
-            logwrapper("sensors")
+            this.logwrapper("sensors")
         ).then(
             stream.getFromDb(programId),
-            logwrapper("sensors")
+            this.logwrapper("sensors")
         ).then(
             stream.sendToClient(),
-            logwrapper("streams")
+            this.logwrapper("streams")
         ).then(
             actuator.getFromDb(programId),
-            logwrapper("streams")
+            this.logwrapper("streams")
         ).then(
             actuator.sendToClient(programId),
-            logwrapper("actuators")
+            this.logwrapper("actuators")
         ).then(
-            operator.getFromDbWithLambda(programId),
-            logwrapper("actuators")
+            operator.getFromDbWithBody(programId),
+            this.logwrapper("actuators")
         ).then(
             operator.sendToClient(),
-            logwrapper("relations")
+            this.logwrapper("relations")
         ).then(
             operator.getFromDbWithHelper(programId),
-            logwrapper("relations")
+            this.logwrapper("relations")
         ).then(
             operator.sendToClient(),
-            logwrapper("composite relations")
+            this.logwrapper("composite relations")
         ).then(
             helper.getFromDb(),
-            logwrapper("composite relations")
+            this.logwrapper("composite relations")
         ).then(
             helper.sendToClient(),
-            logwrapper("lambdas")
+            this.logwrapper("helpers")
         ).then(
             operator.getAvailableFromDb(),
-            logwrapper("lambdas")
+            this.logwrapper("helpers")
         ).then(
             operator.sendAvailableToClient(),
-            logwrapper("available operators")
+            this.logwrapper("available operators")
         );
+    }
+
+    _mapProgram(record) {
+        return {
+            type: "program",
+            action: "add",
+            id: record.get("id"),
+            name: record.get("name")
+        }
     }
 }
 
-module.exports = {
-    Program: Program
-};
+module.exports = Program;

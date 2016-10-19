@@ -65,16 +65,6 @@ define(['knockout'], function (ko) {
             //noinspection JSUnusedGlobalSymbols
             this.lambdaOutput = ko.computed(() => this.getLambdaInOrOut(1));
 
-            // Visible
-            //noinspection JSUnusedGlobalSymbols
-            this.rateVisible = this.visibleForField("rate");
-            //noinspection JSUnusedGlobalSymbols
-            this.lambdaVisible = this.visibleForField("lambda");
-            //noinspection JSUnusedGlobalSymbols
-            this.outputModuleVisible = this.visibleForField("output-module");
-            //noinspection JSUnusedGlobalSymbols
-            this.outputStreamVisible = this.visibleForField("output-stream");
-
             // Active
             //noinspection JSUnusedGlobalSymbols
             this.lambdaActive = ko.computed(

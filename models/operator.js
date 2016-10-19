@@ -1,6 +1,6 @@
-var mappers = require('./mappers');
 var sender = require('./sender');
 var uuid = require('node-uuid');
+var stream = require('./stream');
 
 class Operator {
     constructor(id, io, session) {
@@ -8,40 +8,40 @@ class Operator {
         this.io = io;
         this.session = session;
         this.sender = sender(id, io);
-        this.maps = mappers.Mappers;
+        this.streamModule = new stream(id, io, session);
     }
 
     sendToClient() {
         return this.sender(
-            (record) => this.maps.mapRelation(record.get("relation"))
+            (record) => this._mapRelation(record.get("relation"))
         );
     }
 
     sendAvailableToClient() {
-        return this.sender(this.maps.mapOperations);
+        return this.sender(this._mapOperations);
     }
 
     getFromDbWithHelper(programId) {
         return () => {
             var cypher = `MATCH (s1:Stream)-[:in]->(o:Operation),
                                 (o)-[:out]->(s2:Stream), 
-                                (o)-[:lambda]->(l:Lambda),
+                                (o)-[:helper]->(l:Helper),
                                 (s1:Stream)-[r2]->(p:Program) 
                           WHERE p.uuid = '${programId}'  
                           OPTIONAL MATCH (o)-[:draw_at]->(d:Draw)
-                          RETURN {source: s1.uuid, 
+                          RETURN {source: collect(s1.uuid), 
                                   destination: s2.uuid, 
                                   name: o.name, 
                                   id: o.uuid, 
-                                  lambdaId: l.uuid,
-                                  lambdaName: l.name, 
+                                  helperId: l.uuid,
+                                  helperName: l.name, 
                                   x: d.x, 
                                   y: d.y} as relation`;
             return this.session.run(cypher);
         };
     }
 
-    getFromDbWithLambda(programId) {
+    getFromDbWithBody(programId) {
         return () => {
             var cypher = `MATCH (s1:Stream)-[r]->(s2), 
                                 (s1:Stream)-[r2]->(p:Program), 
@@ -51,7 +51,7 @@ class Operator {
                           RETURN {source: s1.uuid, 
                                   destination: s2.uuid, 
                                   name: type(r), 
-                                  lambda: r.lambda, 
+                                  body: r.body, 
                                   id: r.uuid, 
                                   rate: r.rate} as relation`;
             return this.session.run(cypher);
@@ -65,7 +65,7 @@ class Operator {
         );
     }
 
-    add(msg) {
+    add(msg, callback) {
         this.match = "MATCH (source:Stream), (program:Program) ";
         this.where = `WHERE source.uuid = '${msg.sourceId}' 
                         AND program.uuid = '${msg.programId}' `;
@@ -78,24 +78,24 @@ class Operator {
                        )-[:program]->(program), 
                        (dest)-[:draw_at]->(draw:Draw {x: ${msg.x}, y: ${msg.y}}), `;
 
-        var operators = new Map(
+        var operators = new Map([
             ["timestamp", this.addTimestamp],
-            ["map", this.addWithHelperOrLambda],
-            ["filter", this.addWithHelperOrLambda],
+            ["map", this.addWithHelperOrBody],
+            ["filter", this.addWithHelperOrBody],
             ["sample", this.addSample],
-            ["subscribe", this.addSubscribe]
+            ["subscribe", this.addSubscribe]]
         );
 
-        var foundOp = operators.get(msg.operator);
+        var foundOp = operators.get(msg.operator).bind(this);
 
         if (foundOp !== undefined) {
-            foundOp(msg);
+            foundOp(msg, callback);
         } else {
             console.log(msg.operator);
         }
     }
 
-    edit(msg) {
+    update(msg) {
         this.match = `MATCH (src:Stream)-[op]->(dst:Stream), 
                                  (src)-[:program]->(program:Program), 
                                  (dst)-[:program]->(program) `;
@@ -104,15 +104,15 @@ class Operator {
                              AND program.uuid = {programId} `;
         this.set = `SET dst.name = {name}`;
 
-        var operators = new Map(
+        var operators = new Map([
             ["timestamp", this.editTimestamp],
             ["map", this.editMap],
             ["filter", this.editFilter],
             ["sample", this.editSample],
             ["subscribe", this.editSubscribe]
-        );
+        ]);
 
-        var foundOp = operators.get(msg.operator);
+        var foundOp = operators.get(msg.operator).bind(this);
 
         if (foundOp !== undefined) {
             foundOp();
@@ -129,112 +129,122 @@ class Operator {
                  name: dest.name,
                  x: draw.x, 
                  y: draw.y, 
-                 actuatorName: am.name 
+                 actuatorName: am.name,
+                 programId: program.uuid
                 } as retdest, 
                 {
                  source: source.uuid, 
                  destination: dest.uuid, 
                  name: type(r), 
                  id: r.uuid, 
-                 lambda: r.lambda, 
+                 body: r.body, 
                  rate: r.rate 
                 } as relation`;
     }
 
     getOpPart(label) {
-        return `(source)-[r:${label} {uuid: '${uuid.v4()}'}]->(dest) 
+        return `(source)-[r:${label}]->(dest) 
             RETURN 
             {
              id: dest.uuid, 
              name: dest.name, 
              x: draw.x,
-             y: draw.y 
+             y: draw.y,
+             programId: program.uuid
             } as retdest, 
             {
              source: source.uuid, 
              destination: dest.uuid, 
              name: type(r),
              id: r.uuid, 
-             lambda: r.lambda, 
+             body: r.body, 
              rate: r.rate 
             } as relation`;
     }
 
-    addTimestamp(msg) {
+    addTimestamp(msg, callback) {
         this.cypher = this.match + this.where + this.create;
-        this.cypher += this.getOpPart(msg.operator);
-        this.finishAdd();
+        this.cypher += this.getOpPart(
+            `${msg.operator} {uuid: '${uuid.v4()}'}`
+        );
+        this.finishAdd(callback);
     }
 
-    addWithLambda(lambda, operator) {
+    addWithBody(body, operator, callback) {
         this.cypher = this.match + this.where + this.create;
-        this.cypher += this.getOpPart(`${operator} {lambda: '${lambda}'}`);
-        this.finishAdd();
+        this.cypher += this.getOpPart(`${operator} {body: '${body}', uuid: '${uuid.v4()}'}`);
+        this.finishAdd(callback);
     }
 
-    addWithHelper(helper, sourceId, programId, operator) {
+    addWithHelper(helper, sourceId, programId, operator, callback) {
         this.match = `MATCH (src:Stream)-[:program]->(program:Program), 
-                                (lambda:Lambda) `;
+                                (helper:Helper) `;
         this.where = `WHERE src.uuid = '${sourceId}'
                         AND program.uuid = '${programId}'
-                        AND lambda.uuid = '${helper}' `;
+                        AND helper.uuid = '${helper}' `;
         this.create += ` (op:Operation:${operator} 
-                          {name: '${operator}'}), 
+                          {name: '${operator}', uuid: '${uuid.v4()}'}), 
                        (src)-[:in]->(op)-[:out]->(dest),
-                       (op)-[:lambda]->(lambda)`;
+                       (op)-[:helper]->(helper)`;
         this.return = `RETURN {id: dest.uuid, 
                                name: dest.name, 
                                x: draw.x, 
-                               y: draw.y 
+                               y: draw.y,
+                               programId: program.uuid
                               } as retdest, 
                               {source: src.uuid, 
                                  destination: dest.uuid, 
                                  name: op.name, 
                                  id: op.uuid, 
-                                 lambdaname: lambda.name, 
+                                 helperName: helper.name, 
                                  x: op.x, 
                                  y: op.y} as relation`;
         this.cypher = this.match + this.where + this.create + this.return;
 
-        this.finishAdd();
+        this.finishAdd(callback);
     }
 
-    addWithHelperOrLambda(msg) {
+    addWithHelperOrBody(msg, callback) {
         if (msg.helper != null) {
             this.addWithHelper(
-                msg.helper, msg.sourceId, msg.programId, msg.operator
+                msg.helper, msg.sourceId, msg.programId, msg.operator, callback
             );
         } else {
-            this.addWithLambda(msg.lambda, msg.operator);
+            this.addWithBody(msg.body, msg.operator, callback);
         }
     }
 
-    addSample(msg) {
+    addSample(msg, callback) {
         this.cypher = this.match + this.where + this.create;
         this.cypher += this.getOpPart(
-            `${msg.operator} {rate: '${msg.rate}'}`
+            `${msg.operator} {rate: ${msg.rate}, uuid: '${uuid.v4()}'}`
         );
-        this.finishAdd(msg);
+        this.finishAdd(callback);
     }
 
-    addSubscribe(msg) {
+    addSubscribe(msg, callback) {
         this.match += ", (am:ActuationModule) ";
         this.where += " AND am.uuid = '" + msg.actuatorId + "' ";
         this.create += "(dest)-[:actuator]->(am), ";
         this.cypher = this.match + this.where + this.create;
-        this.cypher += this.getActuatorReturnPart(msg.operator);
-        this.finishAdd();
+        this.cypher += this.getActuatorReturnPart(
+          `${msg.operator} {uuid: '${uuid.v4()}'}`
+        );
+        this.finishAdd(callback);
     }
 
-    finishAdd() {
+    finishAdd(callback) {
         this.session.run(this.cypher).then(
             function(results) {
                 var stream = results.records[0].get("retdest");
-                var mappedStream = this.maps.mapStream(stream);
+                var mappedStream = this._mapStreamAdd(stream);
                 this.io.emit(this.id, [mappedStream]);
                 var relation = results.records[0].get("relation");
-                var mappedRelation = this.maps.mapRelation(relation);
+                var mappedRelation = this._mapRelation(relation);
                 this.io.emit(this.id, [mappedRelation]);
+                if (callback) {
+                    callback();
+                }
             }.bind(this),
             function(msg) {
                 var field = msg.fields[0];
@@ -243,7 +253,7 @@ class Operator {
         );
     }
 
-    finishEdit(msg) {
+    finishEdit(msg, callback) {
         var parameters = {
             name: msg.name,
             sourceId: msg.sourceId,
@@ -254,11 +264,14 @@ class Operator {
         this.session.run(this.cypher, parameters).then(
             function(results) {
                 var stream = results.records[0].get("retdest");
-                var mappedStream = this.maps.mapStreamUpdate(stream);
+                var mappedStream = this._mapStreamUpdate(stream);
                 this.io.emit(this.id, [mappedStream]);
                 var relation = results.records[0].get("relation");
-                var mappedRelation = this.maps.mapRelationUpdate(relation);
+                var mappedRelation = this._mapRelationUpdate(relation);
                 this.io.emit(this.id, [mappedRelation]);
+                if (callback) {
+                    callback();
+                }
             }.bind(this),
             (msg) => console.log("edit operator: " + msg)
         );
@@ -284,8 +297,66 @@ class Operator {
     editSubscribe() {
 
     }
+
+    updateNAry(msg) {
+        var cypher = `MATCH (o:Operation {uuid: {uuid}})-[:draw_at]->(d:Draw)
+                      SET d.x = {x}, d.y = {y}`;
+        var params = {
+            uuid: msg.id,
+            x: msg.x,
+            y: msg.y
+        };
+
+        this.session.run(cypher, params);
+    }
+
+    _mapStreamAdd(item) {
+        return this.streamModule._mapAddStream(item);
+    }
+
+    _mapRelationInternal(record) {
+        var ret = {
+            type: "operation",
+            action: record.action,
+            name: record.name,
+            source: record.source,
+            destination: record.destination,
+            id: record.id,
+        };
+        if (ret.name === "sample") {
+            ret.rate = record.rate.low ? record.rate.low : record.rate;
+        } else if (ret.name === "combine") {
+            ret.x = record.x.low ? record.x.low : record.x;
+            ret.y = record.y.low ? record.y.low : record.y;
+            ret.helper = record.helper;
+        } else if (ret.name === "filter" || ret.name === "map") {
+            ret.body = record.body;
+            ret.helperId = record.helperId;
+            ret.helperName = record.helperName;
+        } else if (ret.name === "subscribe" || ret.name === "timestamp") {
+        } else {
+            console.log(ret.name);
+        }
+        return ret;
+    }
+
+    _mapRelation(record) {
+        record.action = "add";
+        return this._mapRelationInternal(record);
+    }
+
+    _mapRelationUpdate(record) {
+        record.action = "update";
+        return this._mapRelationInternal(record);
+    }
+
+    _mapOperations(record) {
+        return {
+            type: "operations",
+            action: "add",
+            operations: record.get("labels")
+        }
+    }
 }
 
-module.exports = {
-    Operator: Operator
-};
+module.exports = Operator;
