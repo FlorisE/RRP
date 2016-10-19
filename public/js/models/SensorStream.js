@@ -55,52 +55,10 @@ define(
             ),
             () => $('#insert-sensor').modal('hide')
           );
-        } else {
-          /*this.streamModule.add(
-           this.sensorId,
-           this.name(),
-           Math.round($('#editor-container').width() / 2),
-           Math.round($('#editor-container').height() / 2),
-           this.parameters().map(function (parameter) {
-           var msg = {
-           type: parameter.type,
-           name: parameter.name,
-           id: parameter.id
-           };
-
-           if (parameter.type == "list") {
-           msg.value = parameter.value().map(
-           (value) => value.value()
-           )
-           }
-           return msg;
-           }),
-           function () {
-           $('#insert-sensor').modal('hide');
-           }
-           );*/
         }
       }
 
       modal() {
-        /*if (sensor != null) {
-         this.sensorId = sensor.id();
-         this.type = ko.observable(sensor.name());
-         this.name = ko.observable(sensor.name());
-         this.parameters = ko.observableArray(sensor.parameters());
-         this.parameters().forEach(this.instantiate);
-         } else if (stream != null) {
-         this.name = ko.observable(stream.name());
-         this.type = ko.observable(stream.sensorName());
-         this.sensorId = ko.observable(stream.sensorId());
-         // make a deep copy
-         this.parameters = ko.observableArray(stream.parameters().map(
-         this.transform
-         ));
-         } else {
-         throw "Either a sensor or a stream is required";
-         }*/
-
         // disable enter for submission
         $(window).keydown(function (event) {
           if (event.keyCode == 13) {
@@ -123,30 +81,6 @@ define(
           this.sensor,
           this.parameters()
         );
-      }
-
-      instantiate(parameter) {
-        if (parameter.type == "list") {
-          parameter.value = ko.observableArray();
-          parameter.currentItem = ko.observable();
-          parameter.appendItem = function (item) {
-            parameter.value.push(
-              {value: ko.observable(item.currentItem())}
-            );
-            item.currentItem("");
-          };
-          parameter.removeListItem = function (item) {
-            parameter.value.remove(item);
-          };
-          parameter.enterKeyPressed = function (parameter, event) {
-            if (event.keyCode == 13) {
-              parameter.appendItem(parameter);
-              return false;
-            }
-          };
-        } else if (parameter.type == "string") {
-          return "";
-        }
       }
 
       transform(parameter) {
