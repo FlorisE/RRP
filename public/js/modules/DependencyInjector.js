@@ -25,19 +25,25 @@ define(
             fullExtend) {
 
     class DependencyInjector {
-      constructor() {
+      constructor(connectionHandler) {
         this.observers = [];
 
-        this.actuatorModule = new ActuatorModule(this);
-        this.availableOperationsModule = new AvailableOperationsModule(this);
-        this.editorModule = new EditorModule(this);
-        this.helperModule = new HelperModule(this);
-        this.operationModule = new OperationModule(this);
-        this.programModule = new ProgramModule(this);
-        this.sensorModule = new SensorModule(this);
-        this.streamModule = new StreamModule(this);
-        this.sensorStreamModule = new SensorStreamModule(this);
-        this.actuatorStreamModule = new ActuatorStreamModule(this);
+        this.actuatorModule = new ActuatorModule(this, connectionHandler);
+        this.availableOperationsModule = new AvailableOperationsModule(
+            this, connectionHandler
+        );
+        this.editorModule = new EditorModule(this, connectionHandler);
+        this.helperModule = new HelperModule(this, connectionHandler);
+        this.operationModule = new OperationModule(this, connectionHandler);
+        this.programModule = new ProgramModule(this, connectionHandler);
+        this.sensorModule = new SensorModule(this, connectionHandler);
+        this.streamModule = new StreamModule(this, connectionHandler);
+        this.sensorStreamModule = new SensorStreamModule(
+            this, connectionHandler
+        );
+        this.actuatorStreamModule = new ActuatorStreamModule(
+            this, connectionHandler
+        );
 
         this.finished();
       }
@@ -48,6 +54,6 @@ define(
 
     }
 
-    return new DependencyInjector();
+    return DependencyInjector;
   }
 );

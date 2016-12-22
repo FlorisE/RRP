@@ -1,23 +1,19 @@
 define(
     [
         'knockout',
-        './modal/add-op',
         './unaryoperation',
         './naryoperation',
         '../util/box',
         '../util/ObservableMapToKOObservableArray',
-        '../util/ConnectionHandler',
         '../util/JSPlumbInstance',
         './Operations/Operation',
         '../lib/knockout.mapping'
     ],
     function (ko,
-              OperatorModal,
               unaryoperation,
               NAryOperation,
               box,
               mtoa,
-              ConnectionHandler,
               instance,
               Operation) {
 
@@ -54,27 +50,27 @@ define(
                 this.operations = ko.observableArray();
 
                 mtoa(operationsModule, this.operations);
-                this.naryoperators = ko.computed(function () {
+                this.naryoperations = ko.computed(function () {
                     return this.operations().filter(
                         (operation) => operation["sources"]
                     )
                 }, this);
 
-                this.unaryoperators = ko.computed(function () {
+                this.unaryoperations = ko.computed(function () {
                     return this.operations().filter(
                         (operation) => operation["source"]
                     )
                 }, this);
 
                 this.selectedStream = ko.observable();
-                this.selectedOperator = ko.observable();
-                this.availableOperators = ko.observableArray()
+                this.selectedOperation = ko.observable();
+                this.availableOperations = ko.observableArray()
                     .extend({ required: true });
                 this.availableActuators = ko.observableArray();
 
-                /*this.operators = ko.computed(function () {
-                    return this.naryoperators()
-                        .concat(this.unaryoperators())
+                /*this.operations = ko.computed(function () {
+                    return this.naryoperations()
+                        .concat(this.unaryoperations())
                 }, this);*/
 
                 // knockout
@@ -86,7 +82,7 @@ define(
                     /*
                     box(instance, data);
 
-                    // because sometimes operators arrive before streams
+                    // because sometimes operations arrive before streams
                     // are rendered, we check again here
                     var unconnectedIn = data.in().filter(
                         (item) => !item.connected()
@@ -105,20 +101,14 @@ define(
                     });
                 };*/
 
-                this.afterAddUnaryOperator = function(element) {
+                this.afterAddUnaryOperation = function(element) {
                     var data = ko.dataFor(element);
                     unaryoperation(data, instance);
                 };
 
-                this.afterAddNAryOperator = function(element) {
+                this.afterAddNAryOperation = function(element) {
                     var data = ko.dataFor(element);
                     data.draw();
-                };
-
-                this.addOperator = function(stream) {
-                    self.operatorModal(new Operation());
-                    self.operatorModal().source(stream.id());
-                    return true;
                 };
 
                 this.editStream = function(stream) {
@@ -169,50 +159,56 @@ define(
                 var sourceStream = operation.source;
                 var destinationStream = operation.destination;
                 if (operation.name != "combinator") {
-                    var operatorModel = ko.mapping.fromJS(operation);
+                    var operationModel = ko.mapping.fromJS(operation);
 
-                    operatorModel.connected = ko.observable(false);
-                    operatorModel.lambdaName = ko.observable(operation.lambdaName);
+                    operationModel.connected = ko.observable(false);
+                    operationModel.helperName = ko.observable(operation.helperName);
 
-                    operatorModel.lambdaOption = ko.computed(function () {
-                            return this.lambdaName() != null ? "helper" : "lambda"
-                        },
-                        operatorModel
+                    operationModel.bodyOrHelper = ko.observable(
+                        this.helperName() !== null ? "helper" : "body"
                     );
 
-                    operatorModel.label = ko.computed(function() {
-                        return this.lambdaName() != null ?
-                            this.name() + "(" +  this.lambdaName() + ")"
-                            : this.name();
-                    }, operatorModel);
+                    operationModel.hasHelper = ko.computed(
+                        () => operationModel.bodyOrHelper() === "helper"
+                    );
 
-                    operatorModel.helper = ko.computed(
-                        () => operatorModel.lambdaName() != null ?
+                    operationModel.hasBody = ko.computed(
+                        () => operationModel.bodyOrHelper() === "body"
+                    );
+
+                    operationModel.label = ko.computed(function() {
+                        return this.helperName() != null ?
+                            this.name() + "(" +  this.helperName() + ")"
+                            : this.name();
+                    }, operationModel);
+
+                    operationModel.helper = ko.computed(
+                        () => operationModel.helperName() != null ?
                                 this.helpers().find(
                                     (element) => element.id() == operation.lambdaId
                                 )
                                 : null
                         , this);
 
-                    operatorModel.sourceInstance = ko.computed(function() {
-                        if (operatorModel.source() != null) {
-                            return this.findStreamById(operatorModel.source())
+                    operationModel.sourceInstance = ko.computed(function() {
+                        if (operationModel.source() != null) {
+                            return this.findStreamById(operationModel.source())
                         }
                         return null;
                     }, this);
 
-                    operatorModel.destinationInstance = ko.computed(function() {
-                        if (operatorModel.destination() != null) {
-                            return this.findStreamById(operatorModel.destination())
+                    operationModel.destinationInstance = ko.computed(function() {
+                        if (operationModel.destination() != null) {
+                            return this.findStreamById(operationModel.destination())
                         }
                         return null;
                     }, this);
 
-                    operatorModel.selectedActuator = ko.computed(function() {
+                    operationModel.selectedActuator = ko.computed(function() {
                             if (operation.name != 'subscribe') {
                                 return null;
                             }
-                            var destination = operatorModel.destinationInstance();
+                            var destination = operationModel.destinationInstance();
                             return destination ?
                                 destination.actuatorInstance() :
                                 null;
@@ -220,12 +216,12 @@ define(
                         this
                     );
 
-                    this.unaryoperators.push(operatorModel);
+                    this.unaryoperations.push(operationModel);
                 } else {
                     var found = false;
-                    for (var index in this.naryoperators()) {
-                        var operatorFromList = this.naryoperators()[index];
-                        if (operatorFromList.id == operation.id) {
+                    for (var index in this.naryoperations()) {
+                        var operationFromList = this.naryoperations()[index];
+                        if (operationFromList.id == operation.id) {
                             found = true;
                         }
                     }
@@ -236,7 +232,7 @@ define(
                         operation.xpx = ko.computed(() => operation.x + "px");
                         operation.ypx = ko.computed(() => operation.y + "px");
 
-                        this.naryoperators.push(operation);
+                        this.naryoperations.push(operation);
                     } else {
                         this.addInForNAry(operation);
                     }

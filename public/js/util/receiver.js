@@ -119,10 +119,10 @@ define(
 
         addOperations(record) {
             record.operations.forEach(
-                (operator) => this.programModel().availableOperators.push(
+                (operation) => this.programModel().availableOperations.push(
                     {
-                        name: operator,
-                        fields: operatorTypes[operator]
+                        name: operation,
+                        fields: operationTypes[operation]
                     }
                 )
             );

@@ -56,6 +56,21 @@
                                         span.glyphicon.glyphicon-remove
                         <!-- /ko -->
                     <!-- /ko -->
+                    <!-- ko if: $data.type == 'integer' -->
+                    .form-group(
+                      data-bind="attr: { id: 'form-param-' + $data.name } "
+                    )
+                        label.form-group(
+                          data-bind="" +
+                          "attr: { for: 'field-param-' + $data.name }," +
+                          "html: $data.name "
+                        )
+                        input#field-rate.form-control(
+                        type='number',
+                        data-bind="value: $data.value, " +
+                        "attr: { id: 'field-param-' + $data.name }"
+                        )
+                    <!-- /ko -->
                     <!-- /ko -->
                 .modal-footer
                     a.btn.btn-default(data-dismiss="modal") Close

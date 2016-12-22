@@ -1,18 +1,16 @@
 define(
     [
-        'util/ConnectionHandler',
         'models/Editor',
         './Module',
         'models/Operations/OperationFactory'
     ],
-    function (ConnectionHandler,
-              Editor,
+    function (Editor,
               Module,
               OperationFactory) {
     class EditorModule extends Module {
 
-        constructor(d) {
-            super(d);
+        constructor(d, connectionHandler) {
+            super(d, connectionHandler);
             this.editor = null;
         }
 
@@ -36,7 +34,7 @@ define(
             this.editor.load();
         }
 
-        createOperatorModal(data, element) {
+        createOperationModal(data, element) {
             if (data.constructor.name === "String") {
                 var stream = ko.dataFor(
                     element.parentsUntil(".box").parent()[0]

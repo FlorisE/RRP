@@ -3,25 +3,23 @@ define(
         'knockout',
         '../util/ObservableMap',
         'models/Program',
-        '../util/ConnectionHandler',
         './Module',
         '../util/ObservableMapToKOObservableArray'
     ],
     function(ko,
              ObservableMap,
              Program,
-             ConnectionHandler,
              Module,
              mtoa) {
 
         class ProgramModule extends Module {
 
-            constructor(d) {
-                super(d);
+            constructor(d, connectionHandler) {
+                super(d, connectionHandler);
                 this.programs = new ObservableMap([]);
                 this.observers = [];
 
-                ConnectionHandler.register(
+                this.connectionHandler.register(
                     "program", "add",
                     (entry) => this.add(
                         entry.id, entry.name
@@ -38,7 +36,7 @@ define(
             }
 
             create(name, callback) {
-                ConnectionHandler.emit(
+                this.connectionHandler.emit(
                     {
                         type: 'program',
                         action: 'add',
@@ -89,10 +87,10 @@ define(
 
             loadAll() {
                 var self = this;
-                ConnectionHandler.emit(
+                this.connectionHandler.emit(
                     {
                         type: "program",
-                        action: "getAll"
+                        action: "loadAll"
                     }
                 );
             }
@@ -100,10 +98,10 @@ define(
             load(id) {
                 var self = this;
                 this.get(id).load();
-                ConnectionHandler.emit(
+                this.connectionHandler.emit(
                     {
                         type: "program",
-                        action: "get",
+                        action: "load",
                         id: id
                     }
                 );

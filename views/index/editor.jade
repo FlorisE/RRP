@@ -21,17 +21,17 @@
                               'click: deleteClicked'
                 )
                     span.glyphicon.glyphicon-remove
-                ul.dropdown-menu(data-bind="foreach: $root.availableOperators")
+                ul.dropdown-menu(data-bind="foreach: $root.availableOperations")
                     li
-                        a(data-bind="text: $data, click: $parent.addOperator, attr: { dataType: $data }",
+                        a(data-bind="text: $data, click: $parent.addOperation, attr: { dataType: $data }",
                           data-toggle='modal', data-target='#add-op')
 
-    div(data-bind='foreach: { data: unaryoperators, afterAdd: afterAddUnaryOperator }')
-        div.operation.hidden(data-bind='attr: { id: "operator" + id() }, ' +
-                               'text: name'
+    div(data-bind='foreach: { data: unaryoperations, afterAdd: afterAddUnaryOperation }')
+        div.operation.hidden(data-bind='attr: { id: "operation" + id() }, ' +
+                               'text: label'
                     data-toggle='modal', data-target='#add-op' )
-    div(data-bind='foreach: { data: naryoperators, afterAdd: afterAddNAryOperator }')
+    div(data-bind='foreach: { data: naryoperations, afterAdd: afterAddNAryOperation }')
         .draggable.nary(
-            data-bind='attr: { id: "operator" + id() }, ' +
+            data-bind='attr: { id: "operation" + id() }, ' +
                        'style: { left: xpx, top: ypx }')
-            p(data-bind='text: name')
+            p(data-bind='text: label')

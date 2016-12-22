@@ -29,23 +29,23 @@ define([], function () {
             }, callback);
         }
 
-        addOperator(msg) {
+        addOperation(msg, callback) {
             if (msg != null) {
                 msg.action = "add";
-                msg.type = "operator";
-                this.send(msg);
+                msg.type = "operation";
+                this.send(msg, callback);
             }
         }
 
-        updateOperator(msg) {
+        updateOperation(msg, callback) {
             if (msg != null) {
                 msg.action = "edit";
-                msg.type = "operator";
-                this.send(msg);
+                msg.type = "operation";
+                this.send(msg, callback);
             }
         }
 
-        operator(msg) {
+        operation(msg) {
             if (msg != null) {
                 msg.type = "stream";
                 this.send(msg);
@@ -71,18 +71,22 @@ define([], function () {
             });
         }
 
-        updateStreamSensor(id, name, parameters) {
-            this.send({
-                type: "stream",
-                action: "updateStreamSensor",
-                id: id,
-                name: name,
-                parameters: parameters
-            });
+        updateStreamSensor(id, name, parameters, callback) {
+            this.send(
+                {
+                    type: "sensorStream",
+                    action: "update",
+                    id: id,
+                    name: name,
+                    programId:  this.programId,
+                    parameters: parameters
+                },
+                callback
+            );
         }
 
         updateNAry(msg) {
-            msg.type = "operator";
+            msg.type = "operation";
             msg.action = "update-nary";
             this.send(msg);
         }

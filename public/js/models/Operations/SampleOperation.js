@@ -19,6 +19,12 @@ define(['knockout', './Operation'], function(ko, Operation) {
                 this.rate = ko.observable(rate).extend({ required: true });
                 this.name("sample");
                 this.validationGroup.push(this.rate);
+
+                super.initLabel();
+            }
+
+            getLabel() {
+                return `${this.name()} (${this.rate()})`;
             }
 
             copy() {
@@ -50,7 +56,19 @@ define(['knockout', './Operation'], function(ko, Operation) {
             }
 
             getUpdateMessage() {
+                var base = super.getUpdateMessage();
 
+                base.rate = this.rate();
+
+                return base;
+            }
+
+            update(operation) {
+                this.id(operation.id);
+                this.rate(operation.rate);
+                this.source(operation.source);
+                this.destination(operation.destination);
+                return this;
             }
         }
 

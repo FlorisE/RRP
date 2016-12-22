@@ -1,7 +1,8 @@
 define([], function() {
     class Module {
-        constructor(d) {
+        constructor(d, connectionHandler) {
             this.d = d;
+            this.connectionHandler = connectionHandler;
             d.observers.push(this);
         }
 

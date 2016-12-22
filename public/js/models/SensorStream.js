@@ -49,6 +49,8 @@ define(
                   msg.value = parameter.value().map(
                     (value) => value.value()
                   )
+                } else {
+                  msg.value = parameter.value();
                 }
                 return msg;
               }
@@ -118,7 +120,19 @@ define(
           };
           return returnParam;
         } else if (parameter.type == "string") {
-          return parameter;
+          return {
+            type: parameter.type,
+            id: parameter.id,
+            name: parameter.name,
+            value: ko.observable(parameter.value)
+          };
+        } else if (parameter.type == "integer") {
+          return {
+            type: parameter.type,
+            id: parameter.id,
+            name: parameter.name,
+            value: ko.observable(parameter.value)
+          };
         }
       }
     }

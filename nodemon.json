@@ -1,0 +1,5 @@
+{
+    "debug": true,
+    "ignore": ["public"],
+    "watch": ["bin/www", "*.js"]
+}

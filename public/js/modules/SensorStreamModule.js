@@ -2,23 +2,21 @@ define(
   [
     '../models/SensorStream',
     '../util/ObservableMap',
-    '../util/ConnectionHandler',
     '../util/FullExtend',
     './Module'
   ],
   function (SensorStream,
             ObservableMap,
-            ConnectionHandler,
             fullExtend,
             Module) {
 
     class SensorStreamModule extends Module {
 
-      constructor(d) {
-        super(d);
+      constructor(d, connectionHandler) {
+        super(d, connectionHandler);
         var self = this;
 
-        ConnectionHandler.register("sensorStream", "add",
+        this.connectionHandler.register("sensorStream", "add",
           function (entry) {
             return self.addSensorStream(
               entry.id,
@@ -32,7 +30,7 @@ define(
           }
         );
 
-        ConnectionHandler.register("sensorStream", "update",
+        this.connectionHandler.register("sensorStream", "update",
           function (entry) {
             return self.processUpdateSensorStream(
               entry.id,
@@ -48,10 +46,10 @@ define(
       }
 
       create(name, x, y, programId, sensorId, parameters, callback) {
-        ConnectionHandler.emit(
+        this.connectionHandler.emit(
           {
-            type: "stream",
-            action: "addSensor",
+            type: "sensorStream",
+            action: "add",
             name: name,
             programId: programId,
             sensorId: sensorId,
@@ -77,10 +75,10 @@ define(
       }
 
       updateSensorStream(id, name, programId, parameters, callback) {
-        ConnectionHandler.emit(
+        this.connectionHandler.emit(
           {
-            type: "stream",
-            action: "updateStreamSensor",
+            type: "sensorStream",
+            action: "update",
             id: id,
             name: name,
             parameters: parameters,

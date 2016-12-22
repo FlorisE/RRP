@@ -1,27 +1,45 @@
 define(
     [
         '../util/ObservableMap',
-        '../util/ConnectionHandler',
         '../models/Operations/OperationFactory',
         './Module'
     ],
-    function(ObservableMap,
-             ConnectionHandler,
-             OperationFactory,
-             Module) {
+    function (ObservableMap,
+              OperationFactory,
+              Module) {
 
         class OperationModule extends Module {
 
-            constructor(d) {
-                super(d);
-                var self = this;
+            constructor(d, connectionHandler) {
+                super(d, connectionHandler);
+
+                let self = this;
+                let repository = new OperationFactory(d);
+
                 this.operations = new ObservableMap([]);
 
-                ConnectionHandler.register(
+                this.connectionHandler.register(
                     "operation", "add",
                     function (entry) {
-                        var operation = new OperationFactory(d).create(entry.name, entry);
-                        self.add(entry.id, operation);
+                        var operation = self.get(entry.id);
+                        if (operation === undefined) {
+                            operation = repository.create(
+                                entry.name, entry
+                            );
+                            self.add(entry.id, operation);
+                        } else {
+                            operation.addSource(entry.source[0])
+                        }
+                    }
+                );
+
+                this.connectionHandler.register(
+                    "operation", "update",
+                    (item) => {
+                        let operation = this.get(item.id);
+                        repository.update(
+                            item.name, operation, item
+                        );
                     }
                 );
             }
@@ -56,11 +74,11 @@ define(
             }
 
             saveNew(msg, callback) {
-                ConnectionHandler.emit(msg, callback);
+                this.connectionHandler.emit(msg, callback);
             }
 
             saveUpdated(msg, callback) {
-                ConnectionHandler.emit(msg, callback);
+                this.connectionHandler.emit(msg, callback);
             }
         }
 

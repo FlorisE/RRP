@@ -12,17 +12,18 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
 
 #add-op.modal.fade(role='dialog',tabindex="-1")
     .modal-dialog(role='document')
-        .modal-content(data-bind="with: operatorModal")
+        .modal-content(data-bind="with: operationModal")
             form(data-bind="submit: save")
                 .modal-header
                     h4.modal-title(data-bind="text: action")
                 .modal-body
                     .form-group
-                        label(for='operator') Operator
-                        select#operator.form-control.list-group(
-                            data-bind='options: $root.availableOperators, value: selectedOperator',
+                        label(for='operation') Operation
+                        select#operation.form-control.list-group(
+                            data-bind='options: $root.availableOperations, value: selectedOperation',
                             disabled
                         )
+                    <!-- ko if: name() !== "subscribe" -->
                     .form-group
                         label(for='output-stream-name') Output stream name
                         input#output-stream-name.form-control(
@@ -30,32 +31,32 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             placeholder="Output stream name",
                             data-bind="value: outputStreamName"
                         )
+                    <!-- /ko -->
                     <!-- ko if: name() == "map" || name() == "filter" -->
                     .well
-                        .alert.alert-info This operator requires either a body to be implemented or a helper to be specified.
+                        .alert.alert-info This operation requires either a body to be implemented or a helper to be specified.
                         .form-group#form-lambda
                             label(for='field-lambda') Body
                             .input-group
                                 span.input-group-addon
-                                    input(type="radio", name="lambda", value="body", data-bind="checked: lambdaOption")
-                                //.input-group-addon(data-bind="text: lambdaInput(), enable: lambdaActive")
+                                    input(type="radio", name="lambda", value="body", data-bind="checked: bodyOrHelper")
                                 input#field-lambda.form-control(
                                     type='text',
                                     placeholder="Body",
-                                    data-bind="value: body, enable: lambdaOption() == \"body\""
+                                    data-bind="value: body, enable: hasBody()"
                                 )
                                 //.input-group-addon(data-bind="text: lambdaOutput()")
                         .form-group#form-helper
                             label(for='field-helper') Helper
                             .input-group
                                 span.input-group-addon
-                                    input(type="radio", name="lambda", value="helper", data-bind="checked: lambdaOption")
+                                    input(type="radio", name="lambda", value="helper", data-bind="checked: bodyOrHelper")
                                 select#field-helper.form-control.list-group(
                                     type='text',
                                     data-bind='options: $parent.helpers, ' +
                                     '          optionsText: "name", ' +
                                     '          value: selectedHelper, ' +
-                                    '          enable: lambdaOption() == \"helper\"'
+                                    '          enable: hasHelper()'
                                 )
                     <!-- /ko -->
                     <!-- ko if: name() == "sample" -->

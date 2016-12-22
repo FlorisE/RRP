@@ -2,32 +2,41 @@ define(
     [
         '../models/Stream',
         '../util/ObservableMap',
-        '../util/ConnectionHandler',
         './Module'
     ],
     function(Stream,
              ObservableMap,
-             ConnectionHandler,
              Module) {
 
         class StreamModule extends Module {
 
-            constructor(d) {
-                super(d);
+            constructor(d, connectionHandler) {
+                super(d, connectionHandler);
                 var self = this;
                 this.streams = new ObservableMap([]);
-                ConnectionHandler.register("stream", "add",
-                    function (entry) {
+                this.connectionHandler.register("stream", "add",
+                    function (item) {
                         return self.addStream(
-                            entry.id,
-                            entry.name,
-                            entry.x,
-                            entry.y,
-                            self.programModule.get(entry.programId)
+                            item.id,
+                            item.name,
+                            item.x,
+                            item.y,
+                            self.programModule.get(item.programId)
                         )
                     }
                 );
-                ConnectionHandler.register("stream", "remove",
+                this.connectionHandler.register("stream", "update",
+                    (item) => {
+                        var stream = this.streams.get(item.id);
+                        stream.name(item.name);
+                        stream.x(item.x);
+                        stream.y(item.y);
+                        this.streams.set(
+                            item.id, stream
+                        )
+                    }
+                );
+                this.connectionHandler.register("stream", "remove",
                     (item) => this.streams.delete(item.id)
                 );
             }
@@ -52,7 +61,7 @@ define(
 
             update(id, stream) {
                 this.streams.set(id, stream);
-                ConnectionHandler.emit({
+                this.connectionHandler.emit({
                     type: "stream",
                     action: "update",
                     id: stream.id(),
@@ -63,7 +72,7 @@ define(
             }
 
             delete(id) {
-                ConnectionHandler.emit({
+                this.connectionHandler.emit({
                     type: "stream", action: "remove", id: id
                 });
             }

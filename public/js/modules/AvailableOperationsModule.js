@@ -1,21 +1,19 @@
 define(
     [
         '../util/ObservableArray',
-        '../util/ConnectionHandler',
         './Module'
     ],
     function(ObservableArray,
-             ConnectionHandler,
              Module) {
 
         class AvailableOperationsModule /*extends Module*/ {
 
-            constructor(d) {
+            constructor(d, connectionHandler) {
                 //super(d);
                 var self = this;
                 this.availableOperations = new ObservableArray([]);
 
-                ConnectionHandler.register(
+                connectionHandler.register(
                     "operations", "add",
                     function (entry) {
                         entry.operations.forEach(self.push.bind(self))

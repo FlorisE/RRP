@@ -2,21 +2,19 @@ define(
     [
         '../models/Sensor',
         '../util/ObservableMap',
-        '../util/ConnectionHandler',
         './Module'
     ],
     function(Sensor,
              ObservableMap,
-             ConnectionHandler,
              Module) {
 
         class SensorModule extends Module {
 
-            constructor(d) {
-                super(d);
+            constructor(d, connectionHandler) {
+                super(d, connectionHandler);
                 this.sensors = new ObservableMap([]);
 
-                ConnectionHandler.register(
+                this.connectionHandler.register(
                     "sensor", "add",
                     (entry) => this.add(
                         entry.id, entry.name, entry.parameters

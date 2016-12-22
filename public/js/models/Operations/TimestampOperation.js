@@ -16,6 +16,8 @@ define(['knockout', './Operation'], function(ko, Operation) {
                       destination);
 
                 this.name("timestamp");
+
+                super.initLabel();
             }
 
             copy() {

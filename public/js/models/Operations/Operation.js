@@ -1,4 +1,4 @@
-define(['knockout'], function(ko) {
+define(['knockout'], function (ko) {
 
         class Operation {
             constructor(operationModule,
@@ -33,6 +33,16 @@ define(['knockout'], function(ko) {
                 );
             }
 
+            initLabel() {
+                this.label = ko.computed(function () {
+                    return this.getLabel();
+                }, this);
+            }
+
+            getLabel() {
+                return this.name();
+            }
+
             validate() {
                 if (this.errors().length > 0) {
                     this.errors.showAllMessages();
@@ -52,9 +62,9 @@ define(['knockout'], function(ko) {
                         this.destinationInstance.name()
                     );
                 }
-                this.outputStreamName.extend({ required: true });
+                this.outputStreamName.extend({required: true});
                 this.validationGroup.push(this.outputStreamName);
-                this.selectedOperator = this.name();
+                this.selectedOperation = this.name();
 
                 return this;
             }
@@ -72,20 +82,30 @@ define(['knockout'], function(ko) {
 
             getBaseMessage() {
                 return {
-                    type: "operator",
+                    type: "operation",
                     sourceId: this.source(),
                     name: this.outputStreamName(),
                     programId: this.sourceInstance.program.id(),
-                    operator: this.name()
+                    operation: this.name(),
+                    id: this.id()
                 };
             }
 
             getCreateMessage() {
                 var baseMsg = this.getBaseMessage();
                 baseMsg.action = "add";
-                baseMsg.x = this.sourceInstance.x() + 100;
-                baseMsg.y = this.sourceInstance.y() + 100;
+                baseMsg.x = this.calculateX(this.sourceInstance);
+                baseMsg.y = this.calculateY(this.sourceInstance);
                 return baseMsg;
+            }
+
+            calculateX(source) {
+                let xOffsetFromStream = $("#stream" + source.id()).width() / 2;
+                return xOffsetFromStream + source.x();
+            }
+
+            calculateY(source) {
+                return source.y() + 100;
             }
 
             getUpdateMessage() {
@@ -93,6 +113,8 @@ define(['knockout'], function(ko) {
                 baseMsg.action = "update";
                 baseMsg.x = this.destinationInstance.x();
                 baseMsg.y = this.destinationInstance.y();
+                baseMsg.sourceId = this.sourceInstance.id();
+                baseMsg.destinationId = this.destinationInstance.id();
                 return baseMsg;
             }
 

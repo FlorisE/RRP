@@ -27,7 +27,7 @@ define([
             this.programModal = ko.validatedObservable();
             this.helperModal = ko.observable();
             this.insertSensorModal = ko.observable();
-            this.operatorModal = ko.observable();
+            this.operationModal = ko.observable();
 
             this.editorModule = editorModule;
             this.programModule = programModule;
@@ -49,8 +49,8 @@ define([
             this.availableActuators = ko.observableArray();
             mtoa(actuatorModule, this.availableActuators);
 
-            this.availableOperators = ko.observableArray();
-            atoa(availableOperationsModule, this.availableOperators);
+            this.availableOperations = ko.observableArray();
+            atoa(availableOperationsModule, this.availableOperations);
 
             this.addInitial = function (initial) {
                 console.log(initial);
@@ -59,6 +59,7 @@ define([
 
             this.loadProgram = function(program) {
                 self.loadedProgram(program);
+                document.title = program.name();
                 instance.reset();
                 self.load();
                 self.programModule.load(program.id());
@@ -71,18 +72,21 @@ define([
                 return true;
             };
 
-            this.addHelper = function() {
-                viewModel().helperModal(new HelperModal(viewModel(), ch));
+            this.addHelperModal = function() {
+                var helper = self.helperModule.instantiate();
+                self.helperModal(helper);
+                helper.modal();
                 return true;
             };
 
-            this.editHelper = function() {
-                this.helperModal(new HelperModal(viewModel(), ch, this));
+            this.editHelperModal = function(helper) {
+                self.helperModal(helper);
+                helper.modal();
                 return true;
             };
 
             this.createSensorInstance = function(sensor) {
-                var container = $('#editor-container');
+                var container = document.getElementById('editor-container');
                 self.sensorStreamModule.create(
                     sensor.name(),
                     Math.round(container.width()/2),
@@ -97,8 +101,8 @@ define([
                 var element = $(event.relatedTarget);
                 var data = ko.dataFor(element[0]);
                 self.loadedProgram().hideAllMenus();
-                self.operatorModal(
-                    self.editorModule.createOperatorModal(data, element)
+                self.operationModal(
+                    self.editorModule.createOperationModal(data, element)
                 );
             });
         }

@@ -2,21 +2,19 @@ define(
     [
         '../models/Actuator',
         '../util/ObservableMap',
-        '../util/ConnectionHandler',
         './Module'
     ],
     function(Actuator,
              ObservableMap,
-             ConnectionHandler,
              Module) {
 
         class ActuatorModule extends Module {
 
-            constructor(d) {
+            constructor(d, connectionHandler) {
                 super(d);
                 this.actuators = new ObservableMap([]);
 
-                ConnectionHandler.register(
+                connectionHandler.register(
                     "actuator", "add",
                     (entry) => this.add(
                         entry.id, entry.name, entry.parameters

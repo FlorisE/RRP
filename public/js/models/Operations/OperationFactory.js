@@ -39,6 +39,25 @@ define(
                 }
             }
 
+            update (type, current, updated) {
+                switch(type) {
+                    case "sample":
+                        return this.updateSample(current, updated);
+                    case "combine":
+                        return this.updateCombine(current, updated);
+                    case "filter":
+                        return this.updateFilter(current, updated);
+                    case "map":
+                        return this.updateMap(current, updated);
+                    case "subscribe":
+                        return this.updateSubscribe(current, updated);
+                    case "timestamp":
+                        return this.updateTimestamp(current, updated);
+                    default:
+                        console.log('Unknown operation: ' + operation.name);
+                }
+            }
+
             createSample(id, source, destination, rate) {
                 return new SampleOperation(
                     this.d.operationModule,
@@ -49,6 +68,10 @@ define(
                     destination,
                     rate
                 );
+            }
+
+            updateSample(current, updated) {
+                return current.update(updated);
             }
 
             createCombine(id, source, destination, x, y) {
@@ -64,6 +87,10 @@ define(
                 );
             }
 
+            updateCombine(current, updated) {
+
+            }
+
             createFilter(id, source, destination, body, helperId, helperName) {
                 return new FilterOperation(
                     this.d.operationModule,
@@ -76,6 +103,13 @@ define(
                     body,
                     helperId,
                     helperName
+                );
+            }
+
+            updateFilter(current, updated) {
+                return current.update(
+                    updated.id, updated.body, updated.source,
+                    updated.destination, updated.helperId, updated.helperName
                 );
             }
 
@@ -94,6 +128,13 @@ define(
                 );
             }
 
+            updateMap(current, updated) {
+                return current.update(
+                    updated.id, updated.body, updated.source,
+                    updated.destination, updated.helperId, updated.helperName
+                );
+            }
+
             createSubscribe(id, source, destination) {
                 return new SubscribeOperation(
                     this.d.operationModule,
@@ -105,6 +146,10 @@ define(
                 );
             }
 
+            updateSubscribe(current, updated) {
+
+            }
+
             createTimestamp(id, source, destination) {
                 return new TimestampOperation(
                     this.d.operationModule,
@@ -114,6 +159,10 @@ define(
                     source,
                     destination
                 );
+            }
+
+            updateTimestamp(current, updated) {
+
             }
 
             set operationModule(operationModule) {

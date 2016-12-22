@@ -18,7 +18,7 @@ define(['knockout'], function (ko) {
                     [
                         "Custom",
                         {
-                            create: (component) => $("#operator" + operation.id())
+                            create: (component) => $("#operation" + operation.id())
                         }
                     ]
                 ]

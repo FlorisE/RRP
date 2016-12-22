@@ -16,7 +16,11 @@ define(['knockout', './Operation'], function(ko, Operation) {
                       source,
                       destination);
                 this.name("subscribe");
-                this.selectedOutputModule = ko.observable();
+                this.selectedOutputModule = ko.observable(
+                    destination ? this.destinationInstance.actuator : null
+                );
+
+                super.initLabel();
             }
 
             copy() {
@@ -33,6 +37,15 @@ define(['knockout', './Operation'], function(ko, Operation) {
             getCreateMessage() {
                 var base = super.getCreateMessage();
                 base.actuatorId = this.selectedOutputModule().id();
+                base.name = this.selectedOutputModule().name();
+                return base;
+            }
+
+            getUpdateMessage() {
+                let base = super.getUpdateMessage();
+
+                base.actuatorId = this.selectedOutputModule().id();
+
                 return base;
             }
 

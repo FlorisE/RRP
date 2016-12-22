@@ -5,19 +5,19 @@
                 .modal-header
                     h4.modal-title Add helper
                 .modal-body
-                    input(type='hidden', data-bind='value: id')
-                    .form-group
-                        label(for='field-name') Name
-                        input#field-name.form-control(
-                        placeholder="Name",
-                        data-bind="value: name"
-                        )
-                    .form-group
-                        label(for='field-body') Body
-                        textarea#field-body.form-control(
-                        placeholder="Body",
-                        data-bind="value: body"
-                        )
+                    div.row
+                        .col-md-12
+                            input(type='hidden', data-bind='value: id')
+                            .form-group
+                                label(for='field-name') Name
+                                input#field-name.form-control(
+                                placeholder="Name",
+                                data-bind="value: name"
+                                )
+                    div.row
+                        .col-md-12
+                            input(type='hidden', data-bind='value: body')
+                            div#field-body.ace-editor
                 .modal-footer
                     a.btn.btn-default(data-dismiss="modal") Close
                     button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save
