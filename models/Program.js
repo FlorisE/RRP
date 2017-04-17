@@ -3,10 +3,12 @@ const uuid = require('node-uuid');
 
 class Program {
     constructor(id/* : uuid */,
-                name/* : string */) {
+                name/* : string */,
+                neo4jId/* : int */) {
         this.id = id;
         this.name = name;
         this.streams /* : Stream[] */ = [];
+        this.neo4jId = neo4jId;
     }
 
     addStream(stream/* : Stream */) {

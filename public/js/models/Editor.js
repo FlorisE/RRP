@@ -1,12 +1,10 @@
 define([
     'util/ObservableMapToKOObservableArray',
     'util/ObservableArrayToKOObservableArray',
-    './modal/helper_modal',
     'util/JSPlumbInstance',
     './Operations/OperationFactory'],
     function (mtoa,
               atoa,
-              HelperModal,
               instance,
               OperationFactory)
     {
@@ -24,7 +22,8 @@ define([
             var self = this;
 
             this.loadedProgram = ko.observable();
-            this.programModal = ko.validatedObservable();
+            this.programModal = ko.observable();
+            this.monitorModal = ko.observable();
             this.helperModal = ko.observable();
             this.insertSensorModal = ko.observable();
             this.operationModal = ko.observable();
@@ -43,6 +42,8 @@ define([
             this.helpers = ko.observableArray();
             mtoa(helperModule, this.helpers);
 
+            this.robots = ko.observableArray([{name: "Blue"}, {name: "Red"}, {name: "Freeza"}]);
+
             this.availableSensors = ko.observableArray();
             mtoa(sensorModule, this.availableSensors);
 
@@ -51,6 +52,10 @@ define([
 
             this.availableOperations = ko.observableArray();
             atoa(availableOperationsModule, this.availableOperations);
+
+            this.isRunning = ko.observable(false);
+            this.running = ko.computed(this.isRunning);
+            this.notRunning = ko.computed(() => !this.isRunning()); 
 
             this.addInitial = function (initial) {
                 console.log(initial);
@@ -66,9 +71,53 @@ define([
                 return true;
             };
 
+            this.startLoadedProgram = function() {
+                let program = self.loadedProgram();
+                let id = program.neo4jId();
+                $.post(`/runtime/${id}`, function(result) {
+                    console.log(result);
+                });
+                this.isRunning(true);
+            };
+
+            this.restartLoadedProgram = function() {
+                let program = self.loadedProgram();
+                let id = program.neo4jId();
+                $.ajax(`/runtime/${id}`, {
+                    complete: function(result) {
+                        console.log(result);
+                    },
+                    method: "PUT"
+                });
+                this.isRunning(true);
+            };
+
+            this.stopLoadedProgram = function() {
+                let program = self.loadedProgram();
+                let id = program.neo4jId();
+                $.ajax(`/runtime/${id}`, {
+                    method: "DELETE"
+                });
+                this.isRunning(false);
+            };
+
             this.addProgramModal = function() {
                 var program = self.programModule.instantiate();
                 self.programModal(program);
+                return true;
+            };
+
+            this.confirmDeleteProgram = function() {
+                self.programModule.remove(
+                    self.loadedProgram().id(), 
+                    function() {
+                        $('#confirm-delete-program').modal('hide');
+                        self.loadedProgram(null);
+                        document.title = "Reactive Robot Programming";
+                        instance.reset();
+                        return true;
+                    }
+                );
                 return true;
             };
 
@@ -79,6 +128,10 @@ define([
                 return true;
             };
 
+            this.deleteProgramModal = function() {
+                return true;
+            };
+
             this.editHelperModal = function(helper) {
                 self.helperModal(helper);
                 helper.modal();
@@ -86,7 +139,7 @@ define([
             };
 
             this.createSensorInstance = function(sensor) {
-                var container = document.getElementById('editor-container');
+                var container = $('#editor-container');
                 self.sensorStreamModule.create(
                     sensor.name(),
                     Math.round(container.width()/2),
@@ -99,12 +152,28 @@ define([
 
             $('#add-op').on('show.bs.modal', function (event) {
                 var element = $(event.relatedTarget);
-                var data = ko.dataFor(element[0]);
-                self.loadedProgram().hideAllMenus();
-                self.operationModal(
+                // only handle the click if the name is not jQuery
+                // otherwise it will be handled by
+                if (element[0] !== undefined) {
+                  var data = ko.dataFor(element[0]);
+                  self.loadedProgram().hideAllMenus();
+                  self.operationModal(
                     self.editorModule.createOperationModal(data, element)
-                );
+                  );
+                }
             });
+            
+            this.nonSensorOrphans = ko.computed(function() {
+                var loadedProgram = this.loadedProgram();
+                return loadedProgram ? loadedProgram.streams().filter(
+                    (stream) => stream.streamClass !== "sensor" && 
+                                stream.in().length === 0
+                ) : [];
+            }, this);
+
+            this.monitor = function(stream) {
+                return true;
+            };
         }
 
         updateSensorInstance(stream) {

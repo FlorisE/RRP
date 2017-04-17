@@ -22,19 +22,33 @@ class ProgramModule {
                                 type: "program",
                                 action: "add",
                                 id: program.id,
-                                name: program.name
+                                name: program.name,
+                                neo4jId: program.neo4jId
                             },
                             callback
                         )
                     }
                 )
-            }
+            },
+            logwrapper("ProgramModule.loadAll")
         );
     }
 
     get(id) {
         let promise = new Promise(
             (resolve, reject) => this.dao.single(id, resolve, reject)
+        ).catch(logwrapper("ProgramModule.get"));
+        return promise;
+    }
+
+    delete(msg, callback) {
+        let promise = new Promise(
+            (resolve, reject) => this.dao.remove(msg.id, resolve, reject)
+        ).then(
+            function() {
+                if (callback) callback();
+            },
+            logwrapper("ProgramModule.delete")
         );
         return promise;
     }
@@ -54,47 +68,45 @@ class ProgramModule {
         var actuator = moduleFactory.getModule("Actuator");
         var operation = moduleFactory.getModule("Operation");
         var helper = moduleFactory.getModule("Helper");
-        var complexOperation = omFactory.getOperationModule("ComplexOperation");
+        var complexOperation = omFactory.getOperationModule("HelperOrBodyOperation");
+
+        let pmLogwrapper = (message) => logwrapper("ProgramModule.load: " + message);
 
         sensor.getFromDb().then(
-            sensor.sendToClient(),
-            logwrapper("sensors")
+            sensor.sendAddMultiple.bind(sensor),
+            pmLogwrapper("get sensors")
         ).then(
             actuator.getFromDb(programId),
-            logwrapper("sensors")
+            pmLogwrapper("send sensors")
         ).then(
             actuator.sendToClient(programId),
-            logwrapper("actuators")
+            pmLogwrapper("get actuators")
         ).then(
             stream.getFromDb(programId),
-            logwrapper("actuators")
+            pmLogwrapper("send actuators")
         ).then(
             stream.sendToClient(),
-            logwrapper("streams")
+            pmLogwrapper("get streams")
         ).then(
-            complexOperation.getOperationWithBody(programId),
-            logwrapper("streams")
-        ).then(
-            operation.sendToClient(),
-            logwrapper("relations using body")
-        ).then(
-            complexOperation.getOperationWithHelper(programId),
-            logwrapper("relations using body")
+            complexOperation.getOperations(programId),
+            pmLogwrapper("send streams")
         ).then(
             operation.sendToClient(),
-            logwrapper("relations using helper")
+            pmLogwrapper("get relations")
         ).then(
             helper.getAll.bind(helper),
-            logwrapper("relations using helper")
+            pmLogwrapper("send relations")
         ).then(
             helper.sendToClient(),
-            logwrapper("helpers")
+            pmLogwrapper("get helpers")
         ).then(
             operation.getAvailable(),
-            logwrapper("helpers")
+            pmLogwrapper("send helpers")
         ).then(
             operation.sendAvailableToClient(),
-            logwrapper("available operations")
+            pmLogwrapper("get available operations")
+        ).catch(
+            pmLogwrapper("send available operations")
         );
     }
 
@@ -119,17 +131,10 @@ class ProgramModule {
         );
     }
 
-    loadOperationsWithBody(programId, complexOperation, operation) {
-        return complexOperation.getOperationWithBody(programId)().then(
+    loadOperations(programId, complexOperation, operation) {
+        return complexOperation.getOperations(programId)().then(
             operation.sendToClient(),
-            logwrapper("relations using body")
-        );
-    }
-
-    loadOperationsWithHelper(programId, complexOperation, operation) {
-        return complexOperation.getOperationWithHelper(programId)().then(
-            operation.sendToClient(),
-            logwrapper("relations using helper")
+            logwrapper("ProgramModule.loadOperations")
         );
     }
 
@@ -174,11 +179,8 @@ class ProgramModule {
             case "streams":
                 this.loadStreams(programId, stream);
                 break;
-            case "operationsWithBody":
-                this.loadOperationsWithBody(programId, complexOperation, operation);
-                break;
-            case "operationsWithHelper":
-                this.loadOperationsWithHelper(programId, complexOperation, operation);
+            case "operations":
+                this.loadOperations(programId, complexOperation, operation);
                 break;
             case "helpers":
                 this.loadHelpers(helper);

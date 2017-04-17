@@ -1,8 +1,8 @@
 const MapOperation = require("../../models/operation/MapOperation");
 const StreamDao = require("../StreamDao");
-const ComplexOperationDao = require('./ComplexOperationDao');
+const HelperOrBodyOperationDao = require('./HelperOrBodyOperationDao');
 
-class MapOperationDao extends ComplexOperationDao {
+class MapOperationDao extends HelperOrBodyOperationDao {
 
     saveBody(operation, callback) {
         return super.saveBody("map", operation, callback);

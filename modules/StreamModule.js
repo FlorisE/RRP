@@ -10,11 +10,17 @@ class StreamModule {
     get(id) {
         return new Promise(
             (resolve, reject) => this.dao.get(id, resolve, reject)
-        );
+        ).catch(logwrapper("StreamModule.get"));
+    }
+
+    getByName(programId, name) {
+        return new Promise(
+            (resolve, reject) => this.dao.getByName(programId, name, resolve, reject)
+        ).catch(logwrapper("StreamModule.getByName"));
     }
 
     read(id) {
-        this.get(id).then(this.sender.send)
+        this.get(id).then(this.sender.send, logwrapper("StreamModule.read"))
     }
 
     add(msg, callback) {

@@ -1,8 +1,8 @@
 const FilterOperation = require("../../models/operation/FilterOperation");
 const StreamDao = require("../StreamDao");
-const ComplexOperationDao = require('./ComplexOperationDao');
+const HelperOrBodyOperationDao = require('./HelperOrBodyOperationDao');
 
-class FilterOperationDao extends ComplexOperationDao {
+class FilterOperationDao extends HelperOrBodyOperationDao {
 
     saveBody(operation, callback) {
         return super.saveBody("filter", operation, callback);

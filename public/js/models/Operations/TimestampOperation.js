@@ -1,47 +1,53 @@
-define(['knockout', './Operation'], function(ko, Operation) {
+define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
 
-        class TimestampOperation extends Operation {
-            constructor(operationModule,
-                        availableOperationsModule,
-                        streamModule,
-                        id,
-                        source,
-                        destination)
-            {
-                super(operationModule,
-                      availableOperationsModule,
-                      streamModule,
-                      id,
-                      source,
-                      destination);
+    class TimestampOperation extends OneToOneOperation {
+      constructor(operationModule,
+                  availableOperationsModule,
+                  streamModule,
+                  id,
+                  programId,
+                  source,
+                  destination) {
+        super(
+          operationModule,
+          availableOperationsModule,
+          streamModule,
+          id,
+          programId,
+          source,
+          destination,
+          false
+        );
 
-                this.name("timestamp");
+        this.name("timestamp");
+        this.suffix("Timestamped");
 
-                super.initLabel();
-            }
+        super.initLabel();
+      }
 
-            copy() {
-                return new TimestampOperation(
-                    this.operationModule,
-                    this.availableOperationsModule,
-                    this.streamModule,
-                    this.id(),
-                    this.source(),
-                    this.destination()
-                );
-            }
+      copy() {
+        return new TimestampOperation(
+          this.operationModule,
+          this.availableOperationsModule,
+          this.streamModule,
+          this.id(),
+          this.programId(),
+          this.source(),
+          this.destination()
+        );
+      }
 
-            modal() {
-                super.modal();
-                if (!this.id()) {
-                    this.outputStreamName = ko.observable(
-                        this.sourceInstance.name() + "Timestamped"
-                    );
-                }
-                return this;
-            }
+      modal() {
+        super.modal();
+        if (!this.id()) {
+          this.outputStreamName = ko.observable(
+            this.sourceInstance.name() + this.suffix()
+          );
         }
-
-        return TimestampOperation
+        return this;
+      }
     }
+
+    return TimestampOperation
+  }
 );

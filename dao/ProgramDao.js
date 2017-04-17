@@ -32,6 +32,27 @@ class ProgramDao {
         );
     }
 
+    remove(id, resolve, reject) {
+        return this.session.run(
+            `MATCH (p:Program { uuid: {id} })
+             OPTIONAL MATCH (s:Stream)-[:program]->(p)
+             OPTIONAL MATCH (p)-[:parameter]->(param:Parameter) 
+             DETACH DELETE p, s, param`,
+            { id: id }
+        ).then(
+            () => {
+                let msg = {
+                    type: "program",
+                    action: "remove",
+                    id: id
+                };
+                this.sender.send([msg]);
+                resolve();
+            },
+            reject
+        );
+    }
+
     mapSingle(result, resolve) {
         var record = result.records[0];
         var program = record.get("p");
@@ -42,15 +63,16 @@ class ProgramDao {
 
     all() {
         return this.session.run(
-            "MATCH (p:Program) RETURN p"
+            "MATCH (p:Program) RETURN p, id(p)"
         ).then(
             (result) => {
                 return result.records.map(
                     record => {
                         let program = record.get("p");
+                        let neo4jId = record.get("id(p)").low;
                         let uuid, name;
                         ({uuid, name} = program.properties);
-                        return new Program(uuid, name);
+                        return new Program(uuid, name, neo4jId);
                     }
                 );
             },

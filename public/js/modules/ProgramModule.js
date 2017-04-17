@@ -22,7 +22,13 @@ define(
                 this.connectionHandler.register(
                     "program", "add",
                     (entry) => this.add(
-                        entry.id, entry.name
+                        entry.id, entry.name, entry.neo4jId
+                    )
+                );
+                this.connectionHandler.register(
+                    "program", "remove",
+                    (entry) => this.delete(
+                        entry.id, entry.name, entry.neo4jId
                     )
                 );
             }
@@ -55,13 +61,14 @@ define(
                                    name);
             }
 
-            add(id, name) {
+            add(id, name, neo4jId) {
                 var program = new Program(this.d.streamModule,
                                           this.d.operationModule,
                                           this.d.editorModule,
                                           this,
                                           id,
-                                          name);
+                                          name,
+                                          neo4jId);
 
                 mtoa(this.d.streamModule, program.streams);
                 this.programs.set(id, program);
@@ -70,6 +77,17 @@ define(
 
             update(id, program) {
                 this.programs.set(id, program);
+            }
+
+            remove(id, callback) {
+                this.connectionHandler.emit(
+                    {
+                        type: 'program',
+                        action: 'delete',
+                        id: id
+                    },
+                    callback
+                );
             }
 
             delete(id) {

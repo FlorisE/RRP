@@ -23,7 +23,43 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             data-bind='options: $root.availableOperations, value: selectedOperation',
                             disabled
                         )
-                    <!-- ko if: name() !== "subscribe" -->
+                    // ko if: name() === "combine" || name() === "merge"
+                    .form-group
+                        .input-group
+                            label(for='add-input-stream') Input streams
+                            select#add-input-stream.form-control(
+                                data-bind="options: availableInputStreams, " +
+                                          "optionsText: 'name'," +
+                                          "value: selectedStreamToAdd"
+                            )
+                            span.input-group-btn
+                                button.btn.btn-default(
+                                    type="button",
+                                    data-bind="click: appendItem"
+                                )
+                                    span.glyphicon.glyphicon-plus
+                                    | Add
+                        // ko foreach: inputStreams
+                        .input-group
+                            input.form-control(
+                                disabled,
+                                data-bind="value: $data.name"
+                            )
+                            span.input-group-btn
+                                button.btn.btn-default(
+                                    type="button",
+                                    data-bind="click: $parent.removeItem"
+                                )
+                                    span.glyphicon.glyphicon-remove
+                        // /ko
+                    // /ko
+                    // ko if: name() !== "subscribe"
+                    // ko if: $root.nonSensorOrphans().length > 0 && !id()
+                    .alert.alert-info To connect to an orphaned stream, you can enter its name as output stream.
+                    // /ko
+                    // ko if: id()
+                    .alert.alert-info Changing the output stream name in this form will rename the output stream.
+                    // /ko
                     .form-group
                         label(for='output-stream-name') Output stream name
                         input#output-stream-name.form-control(
@@ -31,8 +67,8 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             placeholder="Output stream name",
                             data-bind="value: outputStreamName"
                         )
-                    <!-- /ko -->
-                    <!-- ko if: name() == "map" || name() == "filter" -->
+                    // /ko
+                    // ko if: name() === "map" || name() === "filter" || name() === "combine"
                     .well
                         .alert.alert-info This operation requires either a body to be implemented or a helper to be specified.
                         .form-group#form-lambda
@@ -58,8 +94,8 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                                     '          value: selectedHelper, ' +
                                     '          enable: hasHelper()'
                                 )
-                    <!-- /ko -->
-                    <!-- ko if: name() == "sample" -->
+                    // /ko
+                    // ko if: name() == "sample"
                     .form-group#form-rate
                         label(for='field-rate') Rate (msec)
                         input#field-rate.form-control(
@@ -67,8 +103,8 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             placeholder="Rate",
                             data-bind="value: rate"
                         )
-                    <!-- /ko -->
-                    <!-- ko if: name() == "subscribe" -->
+                    // /ko
+                    // ko if: name() == "subscribe"
                     .form-group#form-output-module
                         label(for='output-module') Output module
                         select#output-module.form-control.list-group(
@@ -76,7 +112,13 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             'options: $parent.availableActuators, ' +
                             'optionsText: "name", ' +
                             'value: selectedOutputModule')
-                    <!-- /ko -->
+                    // /ko
                 .modal-footer
-                    a.btn.btn-default(data-dismiss="modal") Close
-                    button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save
+                    .row
+                        .col-md-4.text-left
+                            // ko if: id()
+                            .btn.btn-danger(data-bind="click: deleteOperation") Delete
+                            // /ko
+                        .col-md-8
+                            a.btn.btn-default(data-dismiss="modal") Close
+                            button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save

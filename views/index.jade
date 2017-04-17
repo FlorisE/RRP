@@ -15,10 +15,13 @@ block content
     //                         aria-label="close")
     //                span(aria-hidden="true")
     //            span Disconnected from server.
+    include index/top
     .row.fill
         include index/editor
         include index/menu
     include index/modal/add-op
+    include index/modal/monitor
     include index/modal/add-program
     include index/modal/add-helper
     include index/modal/insert-sensor
+    include index/modal/confirm-delete-program

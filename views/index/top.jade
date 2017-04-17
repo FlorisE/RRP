@@ -1,0 +1,105 @@
+nav.navbar.navbar-default
+    .container-fluid
+        .navbar-header
+            button.navbar-toggle.collapsed(
+                type="button", 
+                data-toggle="collapse", 
+                data-target="#bs-header-navbar-collapse-1", 
+                aria-expanded="false"
+            )
+                span.sr-only Toggle navigation
+            a.navbar-brand RRP-VPE
+        #bs-header-navbar-collapse-1.collapse.navbar-collapse
+            .navbar-left
+                ul.nav.navbar-nav
+                    li.dropdown
+                        a.dropdown-toggle(
+                            data-toggle="dropdown", 
+                            role="button", 
+                            aria-haspopup="true", 
+                            aria-expanded="false",
+                            href="#"
+                        ) Load program
+                            span.caret
+                        ul.dropdown-menu(data-bind='foreach: programs') 
+                            li
+                                a.list-group-item(
+                                    href="#",
+                                    data-bind='attr: { id: "program" + id() }, ' +
+                                               'text: name, ' +
+                                               'click: $root.loadProgram, ' +
+                                               'css: {active: $root.loadedProgram.id == id}')
+                    button.btn.btn-default.navbar-btn(
+                        data-bind="click: addProgramModal",
+                        data-toggle="modal",
+                        data-target="#add-program"
+                    ) Add a program
+                    // ko if: $root.loadedProgram
+                    =" "
+                    Button.btn.btn-danger.navbar-btn(
+                        data-toggle="modal",
+                        data-target="#confirm-delete-program"
+                    ) Delete program
+                    // /ko
+            // ko if: $root.loadedProgram
+            ul.nav.navbar-nav.navbar-left
+                li.dropdown
+                    a.dropdown-toggle(
+                        data-toggle="dropdown", 
+                        role="button", 
+                        aria-haspopup="true", 
+                        aria-expanded="false",
+                        href="#"
+                    ) Add sensor
+                        span.caret
+                    ul.dropdown-menu(data-bind='foreach: availableSensors') 
+                        li
+                            a.list-group-item(
+                                href="#",
+                                data-bind='attr: { id: "sensor" + id() }, ' +
+                                          'click: $root.createSensorInstance, ' +
+                                          'text: name')
+            // /ko
+            ul.nav.navbar-nav.navbar-right
+                li.dropdown
+                    a.dropdown-toggle(
+                        data-toggle="dropdown", 
+                        role="button", 
+                        aria-haspopup="true", 
+                        aria-expanded="false",
+                        href="#"
+                    ) Edit helper
+                        span.caret
+                    ul.dropdown-menu(data-bind='foreach: helpers')
+                        li
+                            a.list-group-item(
+                                href="#",
+                                data-bind='attr: { id: "helper" + id() }, ' +
+                                           'text: name, ' +
+                                           'click: $root.editHelperModal'
+                                data-toggle="modal",
+                                data-target="#add-helper",
+                                data-backdrop="static")
+                button.btn.btn-default.navbar-btn(
+                    data-bind="click: $root.addHelperModal",
+                    data-toggle="modal",
+                    data-target="#add-helper",
+                    data-backdrop="static") Add a helper
+            //
+                li.dropdown
+                    a.dropdown-toggle(
+                        data-toggle="dropdown", 
+                        role="button", 
+                        aria-haspopup="true", 
+                        aria-expanded="false",
+                        href="#"
+                    ) Edit robot
+                        span.caret
+                    ul.dropdown-menu(data-bind="foreach: robots")
+                        li
+                            a.list-group-item(data-bind="text: name")
+                button.btn.btn-default.navbar-btn(
+                    data-bind="click: $root.addRobotModal",
+                    data-toggle="modal",
+                    data-target="#add-robot",
+                    data-backdrop="static") Add a robot

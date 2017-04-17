@@ -1,142 +1,143 @@
 define(['knockout'], function (ko) {
 
-        class Operation {
-            constructor(operationModule,
-                        availableOperationsModule,
-                        streamModule,
-                        id,
-                        source,
-                        destination) {
-                this.operationModule = operationModule;
-                this.availableOperationsModule = availableOperationsModule;
-                this.streamModule = streamModule;
-                this.id = ko.observable(id);
-                this.source = ko.observable(source);
-                this.destination = ko.observable(destination);
-                this.name = ko.observable(); // this should be set by an
-                                             // implementing class
+    class Operation {
+      constructor(operationModule,
+                  availableOperationsModule,
+                  streamModule,
+                  id,
+                  programId,
+                  hasProceduralParameter,
+                  helperModule,
+                  body,
+                  helperId,
+                  helperName) {
+        this.operationModule = operationModule;
+        this.streamModule = streamModule;
+        this.id = ko.observable(id);
+        this.name = ko.observable(); // this should be set by an
+                                     // implementing class
+        this.suffix = ko.observable();
+        this.programId = ko.observable(programId);
 
-                this.sourceInstance = this.streamModule.get(
-                    this.source()
-                );
+        this.deleteOperation = function () {
+          this.operationModule.remove(
+            this.id(),
+            () => $('#add-op').modal('hide')
+          );
+        };
 
-                if (this.id()) {
-                    this.destinationInstance = this.streamModule.get(
-                        this.destination()
-                    );
-                }
+        this.hasProceduralParameter = hasProceduralParameter;
 
-                this.validationGroup = ko.observableArray([this.destination]);
+        if (hasProceduralParameter) {
+          this.helperModule = helperModule;
+          this.body = ko.observable(body);
+          this.helperId = ko.observable(helperId);
+          this.helperName = ko.observable(helperName);
 
-                this.errors = ko.computed(
-                    () => this.validationGroup(this.validationGroup())
-                );
-            }
+          this.bodyOrHelper = ko.observable(
+            this.helperName() ? "helper" : "body"
+          );
 
-            initLabel() {
-                this.label = ko.computed(function () {
-                    return this.getLabel();
-                }, this);
-            }
+          this.hasHelper = ko.computed(
+            () => this.bodyOrHelper() === "helper"
+          );
 
-            getLabel() {
-                return this.name();
-            }
+          this.hasBody = ko.computed(
+            () => this.bodyOrHelper() === "body"
+          );
 
-            validate() {
-                if (this.errors().length > 0) {
-                    this.errors.showAllMessages();
-                    return false;
-                }
-                return true;
-            }
+          this.selectedHelper = ko.observable(helperModule.get(helperId));
+        }
+      }
 
-            modal() {
-                if (!this.id()) {
-                    this.action = "Add operation";
-                    this.outputStreamName = ko.observable();
-                } else {
-                    this.action = "Edit operation";
+      // This has to be called by an implementing class
+      // after the name has been set
+      initLabel() {
+        this.label = ko.computed(function () {
+          return this.getLabel();
+        }, this);
+      }
 
-                    this.outputStreamName = ko.observable(
-                        this.destinationInstance.name()
-                    );
-                }
-                this.outputStreamName.extend({required: true});
-                this.validationGroup.push(this.outputStreamName);
-                this.selectedOperation = this.name();
+      // sometimes overwritten by a base class
+      getLabel() {
+        if (!this.hasProceduralParameter) {
+          return this.name();
+        } else if (this.bodyOrHelper() == "helper") {
+          return `${this.name()} (${this.helperName()})`;
+        } else {
+          return `${this.name()} (${this.body()})`;
+        }
+      }
 
-                return this;
-            }
+      copy() {
+        return new Operation(
+          this.operationModule,
+          this.availableOperationsModule,
+          this.streamModule,
+          this.id(),
+          this.programId
+        );
+      }
 
-            copy() {
-                return new Operation(
-                    this.operationModule,
-                    this.availableOperationsModule,
-                    this.streamModule,
-                    this.id(),
-                    this.source(),
-                    this.destination()
-                );
-            }
+      getBaseMessage() {
+        let returnValue = {
+          type: "operation",
+          name: this.outputStreamName(),
+          programId: this.programId(),
+          operation: this.name(),
+          id: this.id()
+        };
 
-            getBaseMessage() {
-                return {
-                    type: "operation",
-                    sourceId: this.source(),
-                    name: this.outputStreamName(),
-                    programId: this.sourceInstance.program.id(),
-                    operation: this.name(),
-                    id: this.id()
-                };
-            }
-
-            getCreateMessage() {
-                var baseMsg = this.getBaseMessage();
-                baseMsg.action = "add";
-                baseMsg.x = this.calculateX(this.sourceInstance);
-                baseMsg.y = this.calculateY(this.sourceInstance);
-                return baseMsg;
-            }
-
-            calculateX(source) {
-                let xOffsetFromStream = $("#stream" + source.id()).width() / 2;
-                return xOffsetFromStream + source.x();
-            }
-
-            calculateY(source) {
-                return source.y() + 100;
-            }
-
-            getUpdateMessage() {
-                var baseMsg = this.getBaseMessage();
-                baseMsg.action = "update";
-                baseMsg.x = this.destinationInstance.x();
-                baseMsg.y = this.destinationInstance.y();
-                baseMsg.sourceId = this.sourceInstance.id();
-                baseMsg.destinationId = this.destinationInstance.id();
-                return baseMsg;
-            }
-
-            save() {
-                if (!this.validate()) {
-                    return;
-                }
-
-                if (this.id()) { // update
-                    this.operationModule.saveUpdated(
-                        this.getUpdateMessage(),
-                        () => $('#add-op').modal('hide')
-                    );
-                } else { // add
-                    this.operationModule.saveNew(
-                        this.getCreateMessage(),
-                        () => $('#add-op').modal('hide')
-                    );
-                }
-            }
+        if (this.hasProceduralParameter) {
+          if (this.bodyOrHelper() == "helper") {
+            returnValue.helper = this.helperId() ?
+              this.helperId() :
+              this.selectedHelper().id();
+          } else {
+            returnValue.body = this.body();
+          }
         }
 
-        return Operation
+        return returnValue;
+      }
+
+      modal() {
+        if (!this.id()) {
+          this.action = "Add operation";
+        } else {
+          this.action = "Edit operation";
+        }
+        this.selectedOperation = this.name();
+
+        return this;
+      }
+
+      save() {
+        if (this.id()) { // update
+          this.operationModule.saveUpdated(
+            this.getUpdateMessage(),
+            () => $('#add-op').modal('hide')
+          );
+        } else { // add
+          this.operationModule.saveNew(
+            this.getCreateMessage(),
+            () => $('#add-op').modal('hide')
+          );
+        }
+      }
+
+      setUpdated(id, body, helperId, helperName, programId=null) {
+        this.id(id);
+        this.body(body);
+        this.helperId(helperId);
+        this.helperName(helperName);
+        this.bodyOrHelper(this.helperName() ? "helper" : "body");
+        if (programId !== null)
+          this.programId(programId);
+        return this;
+      }
     }
+
+    return Operation
+  }
 );

@@ -68,7 +68,7 @@ CREATE (str)-[:parameter]->(pi:ParameterInstance),
 
         var cypher = `
 MATCH (stream:Stream { uuid: {id} }),
-      (stream)-[:draw]->(draw:Draw)
+      (stream)-[:draw_at]->(draw:Draw)
 SET stream.name = {name},
     draw.x = {x},
     draw.y = {y}`;

@@ -26,7 +26,8 @@ require.config({
     "knockout.validation": "lib/knockout.validation",
     jsplumb: "lib/jsplumb",
     wu: "lib/wu",
-    ace: "lib/ace"
+    ace: "lib/ace",
+    "jqueryui": 'lib/jqueryui'
   }
 });
 
@@ -37,7 +38,8 @@ define([
     'modules/DependencyInjector',
     'knockout',
     // some implicit dependencies
-    "knockout.validation"
+    "knockout.validation",
+    "jqueryui"
   ],
   function (jQuery,
             bootstrap,
@@ -76,5 +78,9 @@ define([
       );
 
       ko.applyBindings(editor);
+
+      $(".modal").draggable({
+          handle: ".modal-header"
+      });
     });
   });

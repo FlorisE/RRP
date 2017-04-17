@@ -76,7 +76,7 @@ class ClientHandler {
         var executor = module[action];
 
         if (!executor) {
-            throw `Executor ${action} on ${type} not found`;
+            throw `Executor ${action} on module ${type} not found`;
         }
 
         return executor.bind(module);

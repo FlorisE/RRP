@@ -1,0 +1,24 @@
+{
+    "production": {
+        "database": {
+            "ip": "localhost",
+            "port": 7474
+        }
+    },
+    "development": {
+        "database": {
+            "ip": "localhost",
+            "port": 7474
+        },
+        "robot": {
+            "ip": "localhost",
+            "port": 0,
+            "type": "sock"
+    },
+    "test": {
+        "database": {
+            "ip": "localhost",
+            "port": 7475
+        }
+    }
+}

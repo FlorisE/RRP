@@ -1,6 +1,6 @@
-var ComplexOperationModule = require('./ComplexOperationModule');
+var HelperOrBodyOperationModule = require('./HelperOrBodyOperationModule');
 
-class FilterOperationModule extends ComplexOperationModule {
+class FilterOperationModule extends HelperOrBodyOperationModule {
 
     constructor(dao, sender, moduleFactory) {
         super(dao, sender, moduleFactory);

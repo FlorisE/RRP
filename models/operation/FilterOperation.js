@@ -1,8 +1,8 @@
 "use strict";
-const HelperBodyOperation = require("./HelperBodyOperation");
+const OneToOneHelperBodyOperation = require("./OneToOneHelperBodyOperation");
 const uuid = require('node-uuid');
 
-class FilterOperation extends HelperBodyOperation {
+class FilterOperation extends OneToOneHelperBodyOperation {
 
     constructor(id/* : uuid */,
                 source/* : Stream */,

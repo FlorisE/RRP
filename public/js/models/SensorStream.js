@@ -15,7 +15,7 @@ define(
         this.parameters = ko.observableArray(parameters);
         this.modalParameters = ko.computed(function () {
           var parameters = this.parameters();
-          return parameters.map(this.transform);
+          return parameters.map(this.mapParameter);
         }, this);
 
         this.knockoutInstance = null;
@@ -37,6 +37,8 @@ define(
             this.id(),
             this.name(),
             this.program.id(),
+            this.x(),
+            this.y(),
             this.modalParameters().map(
               function (parameter) {
                 var msg = {
@@ -85,7 +87,7 @@ define(
         );
       }
 
-      transform(parameter) {
+      mapParameter(parameter) {
         if (parameter.type == "list") {
           if (parameter.value == null) {
             parameter.value = [];

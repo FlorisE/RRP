@@ -1,5 +1,6 @@
 "use strict";
 const BaseOperationModule = require("./BaseOperationModule");
+const Stream = require("../../models/Stream");
 
 class SimpleOperationModule extends BaseOperationModule {
 

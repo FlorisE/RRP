@@ -3,6 +3,7 @@ class ModuleFactory {
         this.session = session;
         this.sender = sender;
         this.modules = new Map();
+        this.daos = new Map();
     }
 
     getModule(module) {
@@ -38,11 +39,17 @@ class ModuleFactory {
     }
 
     loadDao(moduleName, daoMapper) {
+        let loaded = this.daos.get(moduleName);
+        if (loaded) {
+            return loaded;
+        }
+
         daoMapper = daoMapper || this.daoPath;
 
         let type = require(daoMapper(moduleName));
         if (type != null) {
             let dao = new type(this.session, this.sender, this);
+            this.daos.set(moduleName, dao);
             return dao;
         }
         return null;

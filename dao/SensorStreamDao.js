@@ -9,7 +9,7 @@ class SensorStreamDao extends ParameterizedStreamDao {
 
     add(sensorId, programId, x, y, name, parameters, callback) {
         return super.add(
-            sensorId, programId, x, y, name, "sensor", "Sensor", parameters, callback
+            sensorId, programId, x, y, name, parameters, null, "sensor", "Sensor", callback
         );
     }
 

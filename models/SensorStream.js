@@ -8,9 +8,10 @@ class SensorStream extends Stream {
                 x/* : int */,
                 y/* : int */,
                 program/* : Program */,
+                inStreams/* Stream[] */,
                 sensor/* : Sensor */,
                 parameters/* : Parameter[] */) {
-        super(id, name, x, y, program);
+        super(id, name, x, y, program, inStreams);
 
         this.sensor = sensor;
         this.parameters = parameters;
@@ -23,7 +24,7 @@ class SensorStream extends Stream {
                               sensor/* : Sensor */,
                               parameters/* : Parameter[] */) {
         return new SensorStream(
-            uuid.v4(), name, x, y, program, sensor, parameters
+            uuid.v4(), name, x, y, program, inStreams, sensor, parameters
         );
     }
 }

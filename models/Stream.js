@@ -7,12 +7,14 @@ class Stream extends Drawable {
                 name/* : string */,
                 x/* : int */,
                 y/* : int */,
-                program/* : Program */) {
+                program/* : Program */,
+                inStreams/* Stream[] */) {
         super(x, y);
         this.id = id;
         this.name = name;
         this.program = program;
         this.operations/* : Operation[] */ = [];
+        this.inStreams = inStreams;
     }
 
     addOperation(operation/* : Operation */) {
@@ -22,9 +24,10 @@ class Stream extends Drawable {
     static create(name/* : string */,
                   x/* : int */,
                   y/* : int */,
-                  program/* : Program */) {
+                  program/* : Program */,
+                  inStreams/* : Stream[] */) {
         return new Stream(
-            uuid.v4(), name, x, y, program
+            uuid.v4(), name, x, y, program, inStreams
         );
     }
 }

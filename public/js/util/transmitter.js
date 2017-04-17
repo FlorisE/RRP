@@ -85,12 +85,6 @@ define([], function () {
             );
         }
 
-        updateNAry(msg) {
-            msg.type = "operation";
-            msg.action = "update-nary";
-            this.send(msg);
-        }
-
         addHelper(name, body) {
             this.helper("add", null, name, body);
         }

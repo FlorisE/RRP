@@ -6,15 +6,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
-var tests = require('./routes/tests');
 var runtime = require('./routes/runtime');
+var tests = require('./routes/tests');
 
 var app = express();
-//var addRequestId = require('express-request-id')();
 
 var server = require('http').Server(app);
-//var io = require('socket.io')(server);
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -28,15 +25,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 
-// socket.io middleware
-//app.use(function (req, res, next) {
-//    res.io = io;
-//    next();
-//});
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
+app.use('/runtime', runtime);
 app.use('/tests', tests);
 
 // catch 404 and forward to error handler

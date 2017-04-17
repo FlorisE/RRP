@@ -65,6 +65,17 @@ define(
                 return this.operations.delete(id);
             }
 
+            remove(id, callback) {
+                this.connectionHandler.emit(
+                    {
+                        type: "operation",
+                        action: "remove",
+                        id: id
+                    },
+                    callback
+                );
+            }
+
             clear() {
                 this.operations.clear();
             }

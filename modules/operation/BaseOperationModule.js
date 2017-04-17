@@ -28,8 +28,9 @@ class BaseOperationModule {
                         operation, callback
                     )
                 );
-            }
-        ).catch(logwrapper("BaseOperationModule.add"));
+            },
+          logwrapper("BaseOperationModule.add:Query")
+        ).catch(logwrapper("BaseOperationModule.add:save"));
     }
 
     update(msg, callback) {

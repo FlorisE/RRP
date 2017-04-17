@@ -16,6 +16,13 @@
                     data-target="#edit-op"
                     )
                     span.glyphicon.glyphicon-pencil
+                button.btn.btn-default.btn-lg.stream-menu(
+                    data-bind='visible: menuVisible && $root.isRunning, ' +
+                    'click: $parent.monitor',
+                    data-toggle="modal",
+                    data-target="#monitor"
+                    )
+                    span.glyphicon.glyphicon-eye-open
                 button.btn.btn-danger.btn-lg.stream-menu(
                     data-bind='visible: menuVisible && deletable, ' +
                               'click: deleteClicked'
@@ -27,11 +34,14 @@
                           data-toggle='modal', data-target='#add-op')
 
     div(data-bind='foreach: { data: unaryoperations, afterAdd: afterAddUnaryOperation }')
-        div.operation.hidden(data-bind='attr: { id: "operation" + id() }, ' +
-                               'text: label'
-                    data-toggle='modal', data-target='#add-op' )
+        div.operation.hidden(
+            data-bind='attr: { id: "operation" + id() }, ' +
+                      'text: label'
+            data-toggle='modal', data-target='#add-op'
+        )
     div(data-bind='foreach: { data: naryoperations, afterAdd: afterAddNAryOperation }')
         .draggable.nary(
             data-bind='attr: { id: "operation" + id() }, ' +
-                       'style: { left: xpx, top: ypx }')
+                       'style: { left: xpx, top: ypx }'
+        )
             p(data-bind='text: label')

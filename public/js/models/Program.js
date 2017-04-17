@@ -23,7 +23,8 @@ define(
                         editorModule,
                         programModule,
                         id,
-                        name)
+                        name,
+                        neo4jId)
             {
                 if (!streamModule ||
                     !operationsModule ||
@@ -36,6 +37,7 @@ define(
                 var self = this;
                 this.id = ko.observable(id);
                 this.name = ko.observable(name).extend({ required: true });
+                this.neo4jId = ko.observable(neo4jId);
 
                 this.streamModule = streamModule;
                 this.operationsModule = operationsModule;
@@ -62,11 +64,12 @@ define(
                     )
                 }, this);
 
+
                 this.selectedStream = ko.observable();
                 this.selectedOperation = ko.observable();
                 this.availableOperations = ko.observableArray()
                     .extend({ required: true });
-                this.availableActuators = ko.observableArray();
+                //this.availableActuators = ko.observableArray();
 
                 /*this.operations = ko.computed(function () {
                     return this.naryoperations()
@@ -249,20 +252,7 @@ define(
                 return this;
             }
 
-            validate() {
-                var errors = ko.validation.group([this.name]);
-                if (errors().length > 0) {
-                    errors.showAllMessages();
-                    return false;
-                }
-                return true;
-            }
-
             save () {
-                if (!this.validate()) {
-                    return;
-                }
-
                 if (this.id()) { // update
 
                 } else { // add

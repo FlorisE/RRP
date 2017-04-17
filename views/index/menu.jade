@@ -1,56 +1,90 @@
 .col-md-2
+    // ko if: $root.loadedProgram
     .panel.panel-primary
         .panel-heading
+            h3.panel-title Robot
+        .panel-body
             .row
-                .col-md-7
-                    .h1.panel-title Programs
-                .col-md-5.text-right
-                    button.btn.btn-default.btn-xs(
-                        data-bind="click: addProgramModal"
-                        data-toggle="modal",
-                        data-target="#add-program"
+                .col-md-12
+                    //
+                        select.form-control(data-bind="foreach: robots")
+                          option(data-bind="text: name")
+                        &nbsp;
+                    button.btn.btn-default.btn-success.btn-lg.btn-block(
+                        data-bind='visible: $root.notRunning, ' +
+                                  'click: $root.startLoadedProgram'
                     )
-                        span.glyphicon.glyphicon-plus
-                        | Add
-        .panel-body
-            .list-group(data-bind='foreach: programs')
-                a.list-group-item(
-                    href="#",
-                    data-bind='attr: { id: "program" + id() }, ' +
-                               'text: name, ' +
-                               'click: $root.loadProgram, ' +
-                               'css: {active: $root.loadedProgram.id == id}')
-    .panel.panel-primary
-        .panel-heading
-            h3.panel-title Sensors
-        .panel-body
-            .list-group(data-bind='foreach: availableSensors')
-                a.list-group-item(
-                    href="#",
-                    data-bind='attr: { id: "sensor" + id() }, ' +
-                              'click: $root.createSensorInstance, ' +
-                              'text: name')
-    .panel.panel-primary
-        .panel-heading
-            .row
-                .col-md-7
-                    .h1.panel-title Helpers
-                .col-md-5.text-right
-                    button.btn.btn-default.btn-xs(
-                    data-bind="click: $root.addHelperModal"
-                    data-toggle="modal",
-                    data-target="#add-helper",
-                    data-backdrop="static"
+                        span.glyphicon.glyphicon-play(aria-hidden="true")
+                            | Start
+                    //-button.btn.btn-default.btn-info.btn-lg.btn-block(
+                    //-    data-bind='visible: $root.running, ' +
+                    //-              'click: $root.restartLoadedProgram'
+                    //-)
+                    //-    span.glyphicon.glyphicon-repeat(aria-hidden="true")
+                    //-        | Restart
+                    button.btn.btn-default.btn-danger.btn-lg.btn-block(
+                        data-bind='visible: $root.running, ' +
+                                  'click: $root.stopLoadedProgram'
                     )
-                        span.glyphicon.glyphicon-plus
-                        | Add
-        .panel-body
-            .list-group(data-bind='foreach: helpers')
-                a.list-group-item(
-                    href="#",
-                    data-bind='attr: { id: "helper" + id() }, ' +
-                               'text: name, ' +
-                               'click: $root.editHelperModal'
-                    data-toggle="modal",
-                    data-target="#add-helper",
-                    data-backdrop="static")
+                        span.glyphicon.glyphicon-stop(aria-hidden="true")
+                            | Stop
+    // /ko
+    //.panel.panel-primary
+    //    .panel-heading
+    //        .row
+    //            .col-md-7
+    //                .h1.panel-title Programs
+    //            .col-md-5.text-right
+    //                button.btn.btn-default.btn-xs(
+    //                    data-bind="click: addProgramModal",
+    //                    data-toggle="modal",
+    //                    data-target="#add-program"
+    //                )
+    //                    span.glyphicon.glyphicon-plus
+    //                    | Add
+    //    .panel-body
+    //        .list-group(data-bind='foreach: programs')
+    //            a.list-group-item(
+    //                href="#",
+    //                data-bind='attr: { id: "program" + id() }, ' +
+    //                           'text: name, ' +
+    //                           'click: $root.loadProgram, ' +
+    //                           'css: {active: $root.loadedProgram.id == id}')
+    // ko if: $root.loadedProgram
+    //.panel.panel-primary
+    //    .panel-heading
+    //        h3.panel-title Sensors
+    //    .panel-body
+    //        .list-group(data-bind='foreach: availableSensors')
+    //            a.list-group-item(
+    //                href="#",
+    //                data-bind='attr: { id: "sensor" + id() }, ' +
+    //                          'click: $root.createSensorInstance, ' +
+    //                          'text: name')
+    // /ko
+    // ko if: $root.loadedProgram
+    //.panel.panel-primary
+    //    .panel-heading
+    //        .row
+    //            .col-md-7
+    //                .h1.panel-title Helpers
+    //            .col-md-5.text-right
+    //                button.btn.btn-default.btn-xs(
+    //                data-bind="click: $root.addHelperModal",
+    //                data-toggle="modal",
+    //                data-target="#add-helper",
+    //                data-backdrop="static"
+    //                )
+    //                    span.glyphicon.glyphicon-plus
+    //                    | Add
+    //    .panel-body
+    //        .list-group(data-bind='foreach: helpers')
+    //            a.list-group-item(
+    //                href="#",
+    //                data-bind='attr: { id: "helper" + id() }, ' +
+    //                           'text: name, ' +
+    //                           'click: $root.editHelperModal'
+    //                data-toggle="modal",
+    //                data-target="#add-helper",
+    //                data-backdrop="static")
+    // /ko

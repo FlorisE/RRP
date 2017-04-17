@@ -74,13 +74,15 @@ define(
         );
       }
 
-      updateSensorStream(id, name, programId, parameters, callback) {
+      updateSensorStream(id, name, programId, x, y, parameters, callback) {
         this.connectionHandler.emit(
           {
             type: "sensorStream",
             action: "update",
             id: id,
             name: name,
+            x: x,
+            y: y,
             parameters: parameters,
             programId: programId
           },

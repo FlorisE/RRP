@@ -1,139 +1,84 @@
 define([
     'knockout',
     '../../util/JSPlumbInstance',
-    '../../util/dragger'
+    '../../util/dragger',
+    './ManyToOneOperation'
   ],
   function (ko,
             jsplumb,
-            Dragger) {
+            Dragger,
+            ManyToOneOperation) {
 
-    class CombineOperation {
+    class CombineOperation extends ManyToOneOperation {
       constructor(operationModule,
                   availableOperationsModule,
                   streamModule,
+                  editorModule,
+                  programModule,
+                  helperModule,
                   id,
+                  programId,
                   sources,
                   destination,
                   x,
-                  y) {
-        this.operationModule = operationModule;
+                  y,
+                  body,
+                  helperId,
+                  helperName) {
+          super(
+            operationModule,
+            availableOperationsModule,
+            streamModule,
+            editorModule,
+            programModule,
+            id,
+            programId,
+            sources,
+            destination,
+            x,
+            y,
+            true,
+            helperModule,
+            body,
+            helperId,
+            helperName
+          );
         this.availableOperationsModule = availableOperationsModule;
-        this.streamModule = streamModule;
-
-        this.id = ko.observable(id);
-        this.sources = ko.observableArray(sources);
-        this.destination = ko.observable(destination);
-        this.name = ko.observable("combine");
-        this.x = ko.observable(x);
-        this.y = ko.observable(y);
-        this.label = ko.computed(function () {
-          return this.name();
-        }, this);
-
-        this.xpx = ko.computed(() => this.x() + "px");
-        this.ypx = ko.computed(() => this.y() + "px");
-      }
-
-      draw() {
-        this.enableDragging();
-        this.connectOut();
-        this.connectIn();
-      }
-
-      addSource(source) {
-        this.sources.push(source);
-        this.connectIn();
-      }
-
-      enableDragging() {
-        var dragger = new Dragger();
-        var self = this;
-        jsplumb.draggable(
-          $("#operation" + this.id()),
-          {
-            start: function (params) {
-              dragger = new Dragger(
-                self.x(),
-                self.y(),
-                (operation) => self.update(operation.id(), operation),
-                params.el
-              );
-            },
-            drag: function (params) {
-              dragger.dragMove(params.pos[0], params.pos[1]);
-            },
-            stop: function (params) {
-              dragger.dragStop(params.pos[0], params.pos[1]);
-            }
-          }
-        );
-      }
-
-      connectOut() {
-        jsplumb.connect({
-          source: jsplumb.addEndpoint(
-            "operation" + this.id(),
-            {
-              endpoint: "Blank"
-            }
-          ),
-          target: jsplumb.addEndpoint(
-            "stream" + this.destination(),
-            {
-              endpoint: "Blank",
-              anchor: "TopCenter"
-            }
-          )
-        });
-      }
-
-      connectIn() {
-        var self = this;
-        this.sources().forEach(function (source) {
-          jsplumb.connect({
-            source: "stream" + source,
-            target: jsplumb.addEndpoint(
-              "operation" + self.id(),
-              {
-                endpoint: "Blank",
-                anchor: "TopCenter"
-              }
-            )
-          });
-        });
-      }
-
-      update() {
-        this.operationModule.saveUpdated(this.getUpdateMessage());
-        this.operationModule.update(this.id(), this);
-      }
-
-      getUpdateMessage() {
-        return {
-          type: "operation",
-          action: "updateNAry",
-          id: this.id(),
-          operation: this.name(),
-          x: this.x(),
-          y: this.y()
-        }
+        this.name("combine");
+        this.suffix("Combined");
+        super.initLabel();
       }
 
       copy() {
-        var operation = new CombineOperation(
+        return new CombineOperation(
           this.operationModule,
           this.availableOperationsModule,
           this.streamModule,
+          this.editorModule,
+          this.programModule,
+          this.helperModule,
           this.id(),
-          this.source(),
+          this.programId(),
+          this.sources(),
           this.destination(),
           this.x(),
-          this.y()
-        )
+          this.y(),
+          this.body(),
+          this.helperId(),
+          this.helperName()
+        );
       }
 
       modal() {
-
+        super.modal();
+        if (!this.id()) {
+          this.outputStreamName = ko.observable(
+            this.sourceInstances.length > 0
+              ? this.sourceInstances[0].name() + "Combined"
+              : "Combined"
+          );
+        }
+        return this;
       }
     }
 
