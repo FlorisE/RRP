@@ -4,14 +4,14 @@ const logwrapper = require('../util/logwrapper');
 const StreamDao = require("./StreamDao");
 
 class ParameterizedStreamDao extends StreamDao {
-    constructor(session, sender, moduleFactory) {
-        super(session, sender, moduleFactory);
-    }
+  constructor(session, sender, moduleFactory) {
+    super(session, sender, moduleFactory);
+  }
 
-    add(id, programId, x, y, name, parameters, streamId, relation, type, callback) {
-        streamId = streamId || uuid.v4();
+  add(id, programId, x, y, name, parameters, streamId, relation, type, callback) {
+    streamId = streamId || uuid.v4();
 
-        let template = `
+    let template = `
 MATCH (p:Program), (item:${type}) 
 WHERE p.uuid = {programId} 
   AND item.uuid = {id} 
@@ -27,109 +27,112 @@ MATCH (item)-[:parameter]->(pd:ParameterDefinition),
       (pd)-[:type]->(pt:Type)
 CREATE (str)-[:parameter]->(pi:ParameterInstance),
        (pi)-[:instance_of]->(pd)`;
-        let promise = this.session.run(
-            template,
-            {
-                streamId: streamId,
-                programId: programId,
-                id: id,
-                x: x,
-                y: y,
-                name: name
-            }
-        );
+    let promise = this.session.run(
+      template,
+      {
+        streamId: streamId,
+        programId: programId,
+        id: id,
+        x: x,
+        y: y,
+        name: name
+      }
+    );
 
-        return this.getAndSend(
-            promise, programId, streamId, relation,
-            type, this.mapRecordAdd.bind(this), callback
-        );
-    }
+    return this.getAndSend(
+      promise, programId, streamId, relation,
+      type, this.mapRecordAdd.bind(this), callback
+    );
+  }
 
-    getAndSend(promise, programId, streamId, relation, type, mapper, callback) {
-        return promise.then(
-            () => this.runGetQuery(programId, streamId, relation, type),
-            logwrapper("ParameterizedStreamDao.add")
-        ).then(
-            (result) => {
-                if (result.records.length == 0) {
-                    throw `Program and / or ${type} not found`;
-                }
-                var record = result.records[0];
-                return this.sender.send(mapper(record));
-            },
-            logwrapper("ParameterizedStreamDao.runGetQuery")
-        ).then(
-            () => { if (callback) callback(); }
-        ).catch(logwrapper("ParamerizedStreamDao.getAndSend"));
-    }
+  getAndSend(promise, programId, streamId, relation, type, mapper, callback) {
+    return promise.then(
+      () => this.runGetQuery(programId, streamId, relation, type),
+      logwrapper("ParameterizedStreamDao.add")
+    ).then(
+      (result) => {
+        if (result.records.length == 0) {
+          throw `Program and / or ${type} not found`;
+        }
+        var record = result.records[0];
+        return this.sender.send(mapper(record));
+      },
+      logwrapper("ParameterizedStreamDao.runGetQuery")
+    ).then(
+      () => {
+        if (callback) callback();
+      }
+    ).catch(logwrapper("ParamerizedStreamDao.getAndSend"));
+  }
 
-    update(id, programId, x, y, name, relation, type, parameters, callback) {
-        var self = this;
+  update(id, programId, x, y, name, relation, type, parameters, callback) {
+    var self = this;
 
-        var cypher = `
+    var cypher = `
 MATCH (stream:Stream { uuid: {id} }),
       (stream)-[:draw_at]->(draw:Draw)
 SET stream.name = {name},
     draw.x = {x},
     draw.y = {y}`;
-        var attributes = {
-            id: id,
-            name: name,
-            x: x,
-            y: y
-        };
+    var attributes = {
+      id: id,
+      name: name,
+      x: x,
+      y: y
+    };
 
-        this.session.run(cypher, attributes).then(
-            () => {
-                var parameterQueries = [];
+    this.session.run(cypher, attributes).then(
+      () => {
+        var parameterQueries = [];
 
-                parameters.forEach(
-                    function (parameter) {
-                        var cypher = `
-MATCH (s:Stream)-[:parameter]->(pi:ParameterInstance),
+        parameters.forEach(
+          function (parameter) {
+            var cypher = `
+MATCH (s:Stream { uuid: {streamId} })-[:parameter]->(pi:ParameterInstance),
       (pi)-[:instance_of]->(pd:ParameterDefinition)
-WHERE pd.uuid = {id}
+WHERE pd.uuid = {paramId}
 SET pi.value = {value}`;
-                        var attributes = {
-                            id: parameter.id,
-                            value: parameter.value
-                        };
-                        parameterQueries.push(self.session.run(cypher, attributes));
-                    }
-                );
-
-                Promise.all(parameterQueries).then(
-                    () => {
-                        this.runGetQuery(programId, id, relation, type).then(
-                            this.sendUpdateToClient()
-                        ).then(
-                            () => {
-                                if (callback) {
-                                    callback();
-                                }
-                            }
-                        );
-                    }
-                ).catch(logwrapper("ParameterizedStreamDao.update"));
-            }
+            var attributes = {
+              streamId: id,
+              paramId: parameter.id,
+              value: parameter.value
+            };
+            parameterQueries.push(self.session.run(cypher, attributes));
+          }
         );
-    }
 
-    getFromDb(programId, id, relation, type, callback) {
-        return () => this.runGetQuery(programId, id, relation, type, callback);
-    }
+        Promise.all(parameterQueries).then(
+          () => {
+            this.runGetQuery(programId, id, relation, type).then(
+              this.sendUpdateToClient()
+            ).then(
+              () => {
+                if (callback) {
+                  callback();
+                }
+              }
+            );
+          }
+        ).catch(logwrapper("ParameterizedStreamDao.update"));
+      }
+    );
+  }
 
-    runGetQuery(programId, streamId, relation, type) {
-        var cypher = `
+  getFromDb(programId, id, relation, type, callback) {
+    return () => this.runGetQuery(programId, id, relation, type, callback);
+  }
+
+  runGetQuery(programId, streamId, relation, type) {
+    var cypher = `
 MATCH (s:Stream)-[r:program]->(p:Program),
       (s)-[:draw_at]->(d:Draw) 
 WHERE p.uuid = {programId} `;
 
-        if (streamId) {
-            cypher += `  AND s.uuid = {streamId} `;
-        }
+    if (streamId) {
+      cypher += `  AND s.uuid = {streamId} `;
+    }
 
-        cypher += `OPTIONAL MATCH (s)-[:${relation}]->(item:${type})
+    cypher += `OPTIONAL MATCH (s)-[:${relation}]->(item:${type})
                   OPTIONAL MATCH (s)-[:parameter]->(pi:ParameterInstance),
                                  (pi)-[:instance_of]->(pd:ParameterDefinition),
                                  (pd)-[:type]->(type:Type)
@@ -146,44 +149,45 @@ WHERE p.uuid = {programId} `;
                                value: pi.value,
                                name: pd.name,
                                type: type.name,
-                               id: pd.uuid
+                               id: pd.uuid,
+                               options: pd.values
                            }) 
                   } as stream`;
 
-        var parameters = {programId: programId};
+    var parameters = {programId: programId};
 
-        if (streamId) {
-            parameters.streamId = streamId;
-        }
-
-        return this.session.run(cypher, parameters);
+    if (streamId) {
+      parameters.streamId = streamId;
     }
 
-    sendUpdateToClient() {
-        return this.sender.getSendMethod(
-            (record) => {
-                var stream = record.get("stream");
+    return this.session.run(cypher, parameters);
+  }
 
-                return this.mapUpdateStream(stream);
-            }
-        );
-    }
+  sendUpdateToClient() {
+    return this.sender.getSendMethod(
+      (record) => {
+        var stream = record.get("stream");
 
-    mapAddStream(item) {
-        let stream = this.mapStream(item);
+        return this.mapUpdateStream(stream);
+      }
+    );
+  }
 
-        stream.action = "add";
+  mapAddStream(item) {
+    let stream = this.mapStream(item);
 
-        return stream;
-    }
+    stream.action = "add";
 
-    mapUpdateStream(item) {
-        let stream = this.mapStream(item);
+    return stream;
+  }
 
-        stream.action = "update";
+  mapUpdateStream(item) {
+    let stream = this.mapStream(item);
 
-        return stream;
-    }
+    stream.action = "update";
+
+    return stream;
+  }
 }
 
 module.exports = ParameterizedStreamDao;

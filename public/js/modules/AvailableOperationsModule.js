@@ -16,7 +16,7 @@ define(
                 connectionHandler.register(
                     "operations", "add",
                     function (entry) {
-                        entry.operations.forEach(self.push.bind(self))
+                        self.push(entry)
                     }
                 );
             }

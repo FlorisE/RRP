@@ -35,14 +35,14 @@ define(
       }
 
       createOperationModal(data, element) {
-        if (data.constructor.name === "String") {
+        if (data.constructor.name === "Object") {
           var stream = ko.dataFor(
             element.parentsUntil(".box").parent()[0]
           );
           return (
               new OperationFactory(this.d)
           ).create(
-            data, {
+            data.name, {
               sources: [stream.id()],
               destinations: [],
               programId: stream.program.id(),

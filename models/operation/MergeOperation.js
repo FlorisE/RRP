@@ -2,7 +2,7 @@
 const ManyToOneOperation = require("./ManyToOneOperation");
 const uuid = require('node-uuid');
 
-class CombineOperation extends ManyToOneOperation {
+class MergeOperation extends ManyToOneOperation {
 
   constructor(id/* : uuid */,
               sources/* : Stream[] */,
@@ -11,7 +11,7 @@ class CombineOperation extends ManyToOneOperation {
               x/* : Int */,
               y/* : Int */) {
     super(id, sources, destination, program, x, y);
-    this.name = "combine";
+    this.name = "merge";
   }
 
   static create(sources/* : Stream[] */,
@@ -19,11 +19,23 @@ class CombineOperation extends ManyToOneOperation {
                 program/* : Program */,
                 x/* : Int */,
                 y/* : Int */) {
-    return new CombineOperation(
+    return new MergeOperation(
       uuid.v4(), sources, destination, program, x, y
     );
   }
 
+  hasHelper() {
+    return false;
+  }
+
+  hasBody() {
+    return false;
+  }
+
+  save(dao, helper, callback) {
+    dao.saveRegular(this, callback);
+  }
+
 }
 
-module.exports = CombineOperation;
+module.exports = MergeOperation;

@@ -1,8 +1,8 @@
 "use strict";
-const SingleStreamOutputOperation = require("./SingleStreamOutputOperation");
+const OneToOneOperation = require("./OneToOneOperation");
 const uuid = require('node-uuid');
 
-class OneToOneHelperBodyOperation extends SingleStreamOutputOperation {
+class OneToOneHelperBodyOperation extends OneToOneOperation {
 
   constructor(id/* : uuid */,
               source/* : Stream */,
@@ -28,9 +28,7 @@ class OneToOneHelperBodyOperation extends SingleStreamOutputOperation {
   }
 
   update(dao, newValues, callback) {
-    if (newValues.name && newValues.name != this.destination.name) {
-      this.destination.name = newValues.name;
-    }
+    super.update(newValues);
 
     if (newValues.x) {
       this.x = newValues.x;
@@ -44,7 +42,7 @@ class OneToOneHelperBodyOperation extends SingleStreamOutputOperation {
 
     if (this.body && newValues.helperId)  // body to helper
     {
-      mutation = dao.bodyToHelper(this.id, newValues.helperId, type);
+      mutation = dao.bodyToHelper(this.id, newValues.helperId, this.name);
     }
     else if (this.body && newValues.body)  // body changed
     {
@@ -52,7 +50,7 @@ class OneToOneHelperBodyOperation extends SingleStreamOutputOperation {
     }
     else if (this.helper && newValues.body)  // helper to body
     {
-      mutation = dao.helperToBody(this.id, newValues.body, type);
+      mutation = dao.helperToBody(this.id, newValues.body, this.name);
     }
     else if (this.helper && newValues.helperId)  // helper changed
     {
@@ -61,15 +59,15 @@ class OneToOneHelperBodyOperation extends SingleStreamOutputOperation {
 
     if (mutation) {
       mutation.then(
-        () => this.save(dao, newValues.helper, callback)
+        () => this.save(dao, newValues.helperId, callback)
       );
     } else {
-      this.save(dao, newValues.helper, callback);
+      this.save(dao, newValues.helperId, callback);
     }
   }
 
   save(dao, helper, callback) {
-    if (helper !== null) {
+    if (helper) {
       dao.saveHelper(this, callback);
     } else {
       dao.saveBody(this, callback);

@@ -49,14 +49,6 @@ define([
 
     jsPlumb.ready(function () {
 
-      /*operationTypes = {
-       "filter": ['output-stream', "lambda"],
-       "map": ['output-stream', "lambda"],
-       "sample": ['output-stream', "rate"],
-       "timestamp": ['output-stream'],
-       "subscribe": ["output-module"]
-       };*/
-
       var instance = jsPlumb.getInstance($('#editor-container'));
       instance.importDefaults({
         Connector: ["Straight"],

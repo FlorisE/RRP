@@ -11,7 +11,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
         destination,
         body,
         helperId,
-        helperName
+        helperName,
+        connection
       ) {
         super(
           operationModule,
@@ -25,7 +26,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           helperModule,
           body,
           helperId,
-          helperName
+          helperName,
+          connection
         );
 
         this.name("map");
@@ -45,7 +47,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           this.destination(),
           this.body(),
           this.helperId(),
-          this.helperName()
+          this.helperName(),
+          this.connection()
         )
       }
 

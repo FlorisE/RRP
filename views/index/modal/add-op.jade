@@ -20,9 +20,19 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                     .form-group
                         label(for='operation') Operation
                         select#operation.form-control.list-group(
-                            data-bind='options: $root.availableOperations, value: selectedOperation',
+                            data-bind='options: $root.availableOperationNames, value: selectedOperation',
                             disabled
                         )
+                        //.alert.alert-info
+                            p
+                                b Description:&nbsp;
+                                span(data-bind="text: description")
+                            p
+                                b Input:&nbsp;
+                                span(data-bind="text: input")
+                            p
+                                b Output:&nbsp;
+                                span(data-bind="text: output")
                     // ko if: name() === "combine" || name() === "merge"
                     .form-group
                         .input-group
@@ -55,10 +65,10 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                     // /ko
                     // ko if: name() !== "subscribe"
                     // ko if: $root.nonSensorOrphans().length > 0 && !id()
-                    .alert.alert-info To connect to an orphaned stream, you can enter its name as output stream.
+                    //.alert.alert-info To connect to an orphaned stream, you can enter its name as output stream.
                     // /ko
                     // ko if: id()
-                    .alert.alert-info Changing the output stream name in this form will rename the output stream.
+                    //.alert.alert-info Changing the output stream name in this form will rename the output stream.
                     // /ko
                     .form-group
                         label(for='output-stream-name') Output stream name
@@ -70,9 +80,11 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                     // /ko
                     // ko if: name() === "map" || name() === "filter" || name() === "combine"
                     .well
-                        .alert.alert-info This operation requires either a body to be implemented or a helper to be specified.
+                        //.alert.alert-info This operation requires either a body to be implemented or a helper to be specified.
                         .form-group#form-lambda
                             label(for='field-lambda') Body
+                            span &nbsp;Parameters:&nbsp;
+                            span(data-bind="text: parameters")
                             .input-group
                                 span.input-group-addon
                                     input(type="radio", name="lambda", value="body", data-bind="checked: bodyOrHelper")
@@ -94,8 +106,10 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                                     '          value: selectedHelper, ' +
                                     '          enable: hasHelper()'
                                 )
+                                span.input-group-btn
+                                    button.btn.btn-default.glyphicon.glyphicon-pencil(data-bind="click: $root.editHelperModal, enable: hasHelper()")
                     // /ko
-                    // ko if: name() == "sample"
+                    // ko if: name() == "sample" || name() == "forgetAfter"
                     .form-group#form-rate
                         label(for='field-rate') Rate (msec)
                         input#field-rate.form-control(

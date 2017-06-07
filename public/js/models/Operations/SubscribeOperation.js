@@ -8,7 +8,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
         id,
         programId,
         source,
-        destination
+        destination,
+        connection
       ) {
         super(
           operationModule,
@@ -18,7 +19,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           programId,
           source,
           destination,
-          false
+          false,
+          connection
         );
         this.name("subscribe");
         this.suffix("Subscribed");
@@ -37,7 +39,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           this.id(),
           this.programId(),
           this.source(),
-          this.destination()
+          this.destination(),
+          this.connection()
         );
       }
 

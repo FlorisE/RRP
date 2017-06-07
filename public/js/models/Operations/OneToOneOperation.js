@@ -1,4 +1,4 @@
-define(['knockout', './Operation'], function (ko, Operation) {
+define(['knockout', './Operation', '../../util/JSPlumbInstance'], function (ko, Operation, jsplumb) {
     "use strict";
 
     class OneToOneOperation extends Operation {
@@ -14,7 +14,8 @@ define(['knockout', './Operation'], function (ko, Operation) {
           helperModule,
           body,
           helperId,
-          helperName
+          helperName,
+          connection
         ) {
           super(
             operationModule,
@@ -35,6 +36,8 @@ define(['knockout', './Operation'], function (ko, Operation) {
               this.source()
           );
 
+          this.connection = ko.observable(connection);
+
           this.destination = ko.observable(destination);
 
           this.destinationInstance = this.id() ? this.streamModule.get(
@@ -42,6 +45,19 @@ define(['knockout', './Operation'], function (ko, Operation) {
           ) : null;
 
           this.programId = ko.observable(programId);
+
+          this.deleteOperation = function () {
+            this.operationModule.remove(
+              this.id(),
+              () => {
+                $('#add-op').modal('hide');
+                jsplumb.detach(this.connection());
+              }
+            );
+          };
+
+          this.in = "1";
+          this.out = "1";
         }
 
         copy() {
@@ -60,6 +76,10 @@ define(['knockout', './Operation'], function (ko, Operation) {
           this.outputStreamName = ko.observable(
             this.destinationInstance ? this.destinationInstance.name() : null
           );
+
+          if (this.hasProceduralParameter) {
+            this.parameters = ko.observable(this.parameterConverter(this.sourceInstance.name()));
+          }
           return this;
         }
 
@@ -91,8 +111,8 @@ define(['knockout', './Operation'], function (ko, Operation) {
             return baseMsg;
         }
 
-        setUpdated(id, body, source, destination, helperId, helperName) {
-          super.setUpdated(id, body, helperId, helperName, programId);
+        setUpdated(id, programId, source, destination, body, helperId, helperName) {
+          super.setUpdated(id, programId, body, helperId, helperName);
           this.source(source);
           this.destination(destination);
         }

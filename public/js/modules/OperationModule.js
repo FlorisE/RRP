@@ -1,99 +1,108 @@
 define(
-    [
-        '../util/ObservableMap',
-        '../models/Operations/OperationFactory',
-        './Module'
-    ],
-    function (ObservableMap,
-              OperationFactory,
-              Module) {
+  [
+    '../util/ObservableMap',
+    '../models/Operations/OperationFactory',
+    './Module'
+  ],
+  function (ObservableMap,
+            OperationFactory,
+            Module) {
 
-        class OperationModule extends Module {
+    class OperationModule extends Module {
 
-            constructor(d, connectionHandler) {
-                super(d, connectionHandler);
+      constructor(d, connectionHandler) {
+        super(d, connectionHandler);
 
-                let self = this;
-                let repository = new OperationFactory(d);
+        let self = this;
+        let repository = new OperationFactory(d);
 
-                this.operations = new ObservableMap([]);
+        this.operations = new ObservableMap([]);
 
-                this.connectionHandler.register(
-                    "operation", "add",
-                    function (entry) {
-                        var operation = self.get(entry.id);
-                        if (operation === undefined) {
-                            operation = repository.create(
-                                entry.name, entry
-                            );
-                            self.add(entry.id, operation);
-                        } else {
-                            operation.addSource(entry.source[0])
-                        }
-                    }
-                );
-
-                this.connectionHandler.register(
-                    "operation", "update",
-                    (item) => {
-                        let operation = this.get(item.id);
-                        repository.update(
-                            item.name, operation, item
-                        );
-                    }
-                );
+        this.connectionHandler.register(
+          "operation", "add",
+          function (entry) {
+            var operation = self.get(entry.id);
+            if (operation === undefined) {
+              operation = repository.create(
+                entry.name, entry
+              );
+              self.add(entry.id, operation);
+            } else {
+              if (operation.in == 1) {
+                operation.addSource(entry.source)
+              } else {
+                for (let source of entry.sources)
+                  operation.addSource(source);
+              }
             }
+          }
+        );
 
-            get(id) {
-                return this.operations.get(id);
-            }
+        this.connectionHandler.register(
+          "operation", "update",
+          (item) => {
+            let operation = this.get(item.id);
+            repository.update(
+              item.name, operation, item
+            );
+          }
+        );
+      }
 
-            getAll() {
-                return this.operations.values();
-            }
+      get(id) {
+        return this.operations.get(id);
+      }
 
-            add(id, operation) {
-                this.operations.set(id, operation);
-                return operation;
-            }
+      getAll() {
+        return this.operations.values();
+      }
 
-            update(id, operation) {
-                this.operations.set(id, operation);
-            }
+      add(id, operation) {
+        this.operations.set(id, operation);
+        return operation;
+      }
 
-            delete(id) {
-                return this.operations.delete(id);
-            }
+      update(id, operation) {
+        this.operations.set(id, operation);
+      }
 
-            remove(id, callback) {
-                this.connectionHandler.emit(
-                    {
-                        type: "operation",
-                        action: "remove",
-                        id: id
-                    },
-                    callback
-                );
-            }
+      delete(id) {
+        return this.operations.delete(id);
+      }
 
-            clear() {
-                this.operations.clear();
-            }
+      remove(id, callback) {
+        this.connectionHandler.emit(
+          {
+            type: "operation",
+            action: "remove",
+            id: id
+          },
+          callback
+        );
+      }
 
-            register(observer) {
-                this.operations.register(observer);
-            }
+      removed(id) {
+        this.delete(id);
+      }
 
-            saveNew(msg, callback) {
-                this.connectionHandler.emit(msg, callback);
-            }
+      clear() {
+        this.operations.clear();
+      }
 
-            saveUpdated(msg, callback) {
-                this.connectionHandler.emit(msg, callback);
-            }
-        }
+      register(observer) {
+        this.operations.register(observer);
+      }
 
-        return OperationModule;
+      saveNew(msg, callback) {
+        this.connectionHandler.emit(msg, callback);
+      }
 
+      saveUpdated(msg, callback) {
+        this.connectionHandler.emit(msg, callback);
+      }
     }
+
+    return OperationModule;
+
+  }
 );

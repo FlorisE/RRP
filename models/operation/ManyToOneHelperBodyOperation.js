@@ -4,14 +4,14 @@ const uuid = require('node-uuid');
 
 class ManyToOneHelperBodyOperation extends ManyToOneOperation {
 
-  constructor(id/* : uuid */, sources/* : Stream[] */,
+  constructor(id/* : uuid */,
+              sources/* : Stream[] */,
               destination/* : Stream */,
               program/* : Program */,
               x/* : Int */,
-              y/* : Int */) {
-    super(id, sources, destination, program);
-    this.x = x;
-    this.y = y;
+              y/* : Int */)
+  {
+    super(id, sources, destination, program, x, y);
   }
 
   addBody(body /* : string */) {
@@ -40,8 +40,8 @@ class ManyToOneHelperBodyOperation extends ManyToOneOperation {
     return new ManyToOneHelperBodyOperation(uuid.v4(), sources, destination, program, x, y);
   }
 
-  getUpdatePromises() {
-    let promises = super.getUpdatePromises();
+  getUpdatePromises(newValues, dao) {
+    let promises = super.getUpdatePromises(newValues, dao);
 
     let changesToBodyOrHelper = this.getChangesToBodyOrHelper(newValues, dao);
     if (changesToBodyOrHelper !== null) {

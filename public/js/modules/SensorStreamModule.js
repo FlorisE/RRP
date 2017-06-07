@@ -63,12 +63,14 @@ define(
 
       processUpdateSensorStream(id, name, x, y, program, sensor, parameters) {
         var sensorStream = this.get(id);
+
         sensorStream.name(name);
         sensorStream.x(x);
         sensorStream.y(y);
         sensorStream.program = program;
         sensorStream.sensor = sensor;
         sensorStream.parameters.removeAll();
+
         parameters.forEach(
           (parameter) => sensorStream.parameters.push(parameter)
         );

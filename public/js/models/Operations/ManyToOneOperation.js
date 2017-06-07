@@ -12,7 +12,7 @@ define(
   "use strict";
 
   class ManyToOneOperation extends Operation {
-    constructor(operationModule,
+     constructor(operationModule,
                 availableOperationsModule,
                 streamModule,
                 editorModule,
@@ -58,6 +58,22 @@ define(
         this.destinationInstance = this.streamModule.get(
           this.destination()
         );
+        this.decendants = [];
+        let decendantsToConsider = [this.destinationInstance];
+
+        while (decendantsToConsider.length > 0) {
+          let considering = decendantsToConsider.pop();
+          if (this.decendants.indexOf(considering) === -1) {
+            this.decendants.push(considering);
+            considering.out().forEach(
+              (op) => decendantsToConsider.push(op.destinationInstance)
+            );
+          }
+        }
+
+        this.children = this.streamModule.get(
+          this.destination()
+        )
       }
 
       this.program = programModule.get(programId);
@@ -73,6 +89,21 @@ define(
           this.destinationInstance.name() :
           null
       );
+
+      // overwrites the base class
+       this.deleteOperation = function () {
+         this.operationModule.remove(
+           this.id(),
+           () => {
+             $('#add-op').modal('hide');
+             jsplumb.detachAllConnections("operation" + this.id());
+             this.operationModule.removed(this.id())
+           }
+         );
+       };
+
+       this.in = "*";
+       this.out = 1;
     }
 
     draw() {
@@ -139,7 +170,8 @@ define(
         source: jsplumb.addEndpoint(
           "operation" + this.id(),
           {
-            endpoint: "Blank"
+            endpoint: "Blank",
+            anchor: "BottomCenter"
           }
         ),
         target: jsplumb.addEndpoint(
@@ -156,7 +188,13 @@ define(
       var self = this;
       this.sources().forEach(function (source) {
         jsplumb.connect({
-          source: "stream" + source,
+          source: jsplumb.addEndpoint(
+            "stream" + source,
+            {
+              endpoint: "Blank",
+                anchor: "BottomCenter"
+            }
+          ),
           target: jsplumb.addEndpoint(
             "operation" + self.id(),
             {
@@ -184,13 +222,26 @@ define(
 
       const self = this;
 
-      this.availableInputStreams = ko.computed(() =>
-        this.program.streams().filter(
-          (stream) => this.inputStreams().find(
-            (instance) => instance === stream
-          ) === undefined && stream !== this.destinationInstance
-        )
-      );
+      this.availableInputStreams = ko.computed(() => {
+        let isNotParent = (stream) => this.inputStreams().find(
+          (instance) => instance === stream
+        ) === undefined;
+        let isNotDecendant = (stream) =>
+          this.id() ?
+            this.decendants.indexOf(stream) === -1 :
+            true;
+        return this.program.streams().filter(
+          (stream) => {
+            return isNotParent(stream) && isNotDecendant(stream) && !stream.actuator
+          }
+        );
+      });
+
+      if (this.hasProceduralParameter) {
+        this.parameters = ko.computed(() =>
+          this.inputStreams().map((stream) => this.parameterConverter(stream.name())).join(", ")
+        );
+      }
 
       this.appendItem = function() {
         this.inputStreams.push(this.selectedStreamToAdd());
@@ -242,8 +293,8 @@ define(
       return baseMsg;
     }
 
-    setUpdated(id, sources, destination, body, helperId, helperName, programId) {
-      super.setUpdated(id, body, helperId, helperName, programId);
+    setUpdated(id, programId, sources, destination, body, helperId, helperName) {
+      super.setUpdated(id, programId, body, helperId, helperName);
       this.sources(sources);
       this.destination(destination);
     }

@@ -1,15 +1,14 @@
 "use strict";
-const Operation = require("./Operation");
+const OneToOneOperation = require("./OneToOneOperation");
 const uuid = require("node-uuid");
 
-class SubscribeOperation extends Operation {
+class SubscribeOperation extends OneToOneOperation {
 
     constructor(id/* : uuid */,
                 source/* : Stream */,
                 destination/* : ActuatorStream */,
                 program/* : Program */) {
-        super(id, source, program);
-        this.destination = destination;
+        super(id, source, destination, program);
         this.name = "subscribe";
     }
 

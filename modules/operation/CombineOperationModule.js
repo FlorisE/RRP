@@ -1,3 +1,4 @@
+const CombineOperation = require("../../models/operation/CombineOperation");
 var HelperOrBodyOperationModule = require('./HelperOrBodyOperationModule');
 
 class CombineOperationModule extends HelperOrBodyOperationModule {
@@ -16,13 +17,29 @@ class CombineOperationModule extends HelperOrBodyOperationModule {
         (helper) => {
           operation.addHelper(helper);
 
-          this.dao.addHelperOrBody(operation, callback);
+          this.dao.add(operation, callback);
         }
       );
     } else {
       operation.addBody(body);
-      this.dao.addHelperOrBody(operation, callback);
+      this.dao.add(operation, callback);
     }
+  }
+
+  add(msg, callback) {
+    return super.add(msg, callback, this.factory);
+  }
+
+  factory(sources, destination, program, msg) {
+    return CombineOperation.create(
+      sources, destination, program, msg.opx, msg.opy
+    );
+  }
+
+  getAdder(operation, callback, msg) {
+    return () => this.addWithHelperOrBody(
+      msg.helperId, msg.body, operation, callback
+    );
   }
 }
 

@@ -1,6 +1,7 @@
 define(
   [
     './SampleOperation',
+    './ForgetAfterOperation',
     './CombineOperation',
     './FilterOperation',
     './MapOperation',
@@ -9,6 +10,7 @@ define(
     './MergeOperation'
   ],
   function (SampleOperation,
+            ForgetAfterOperation,
             CombineOperation,
             FilterOperation,
             MapOperation,
@@ -34,6 +36,11 @@ define(
         switch (type) {
           case "sample":
             return this.createSample(
+              id, programId, firstOrNull(operation.sources),
+              firstOrNull(operation.destinations), operation.rate
+            );
+          case "forgetAfter":
+            return this.createForgetAfter(
               id, programId, firstOrNull(operation.sources),
               firstOrNull(operation.destinations), operation.rate
             );
@@ -79,6 +86,8 @@ define(
         switch (type) {
           case "sample":
             return this.updateSample(current, updated);
+          case "forgetAfter":
+            return this.updateForgetAfter(current, updated);
           case "combine":
             return this.updateCombine(current, updated);
           case "filter":
@@ -110,7 +119,24 @@ define(
       }
 
       updateSample(current, updated) {
-        return current.setUpdated(updated);
+        return current.setUpdated(updated.id, updated.rate, updated.sources[0], updated.destinations[0]);
+      }
+
+      createForgetAfter(id, programId, source, destination, rate) {
+        return new ForgetAfterOperation(
+          this.d.operationModule,
+          this.d.availableOperationsModule,
+          this.d.streamModule,
+          id,
+          programId,
+          source,
+          destination,
+          rate
+        );
+      }
+
+      updateForgetAfter(current, updated) {
+        return current.setUpdated(updated.id, updated.rate, updated.sources[0], updated.destinations[0]);
       }
 
       createCombine(id, programId, sources, destination, x, y, body, helperId, helperName) {
@@ -135,8 +161,9 @@ define(
 
       updateCombine(current, updated) {
         return current.setUpdated(
-          updated.id, updated.sources, updated.destinations[0], updated.body,
-          updated.helperId, updated.helperName, updated.programId
+          updated.id, updated.programId, updated.sources,
+          updated.destinations[0], updated.body,
+          updated.helperId, updated.helperName
         );
       }
 
@@ -158,7 +185,7 @@ define(
 
       updateMerge(current, updated) {
         return current.setUpdated(
-          updated.id, updated.sources, updated.destinations[0], updated.programId
+          updated.id, updated.programId, updated.sources, updated.destinations[0]
         );
       }
 
@@ -180,8 +207,9 @@ define(
 
       updateFilter(current, updated) {
         return current.setUpdated(
-          updated.id, updated.body, updated.source,
-          updated.destination, updated.helperId, updated.helperName
+          updated.id, updated.programId, updated.sources[0],
+          updated.destinations[0], updated.body,
+          updated.helperId, updated.helperName
         );
       }
 
@@ -203,8 +231,9 @@ define(
 
       updateMap(current, updated) {
         return current.setUpdated(
-          updated.id, updated.body, updated.source,
-          updated.destination, updated.helperId, updated.helperName
+          updated.id, updated.programId, updated.sources[0],
+          updated.destinations[0], updated.body,
+          updated.helperId, updated.helperName
         );
       }
 

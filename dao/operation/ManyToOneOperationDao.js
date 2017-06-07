@@ -72,19 +72,24 @@ RETURN {
         var record = value.records[0].get("record");
 
         if (callback) {
-          callback((record.helper) ?
-            this.mapHelper(record) :
-            this.mapBody(record));
+          if (record.helper) {
+            callback(this.mapHelper(record));
+          } else if (record.body) {
+            callback(this.mapBody(record))
+          } else {
+            callback(this.map(record))
+          }
         }
-      }
-    ).catch(logwrapper("ManyToOneOperationDao.get"));
+      },
+      logwrapper("ManyToOneOperationDao.get:Query")
+    );
   }
 
   mapHelper(operation) {
     const op = this.map(operation);
     const helper = operation.helper;
 
-    op.addHelper(operation);
+    op.addHelper(helper);
 
     return op;
   }
@@ -139,30 +144,46 @@ SET o.name = {name},
     return this.session.run(query, parameters).then(
       this.get(
         operation.id,
-        (record) => this.addHelperOrBody(
+        (record) => this.add(
           record,
           () => this.sendUpdate(record)
         )
       ),
-      logwrapper("ManyToOneOperationDao.saveBody:Query")
+      logwrapper("ManyToOneOperationDao.saveAndSend:Query")
     ).then(
       () => {
         if (callback) {
           callback();
         }
       },
-      logwrapper("ManyToOneOperationDao.saveBody:sendResult")
+      logwrapper("ManyToOneOperationDao.saveAndSend:sendResult")
     ).catch(
-      logwrapper("ManyToOneOperationDao.saveBody:Callback")
+      logwrapper("ManyToOneOperationDao.saveAndSend:Callback")
     );
+  }
+
+  saveRegular(operation, callback) {
+    let query = `
+MATCH (o:Operation {uuid: {id} })-[:draw_at]->(d:Draw),
+      (o)-[:out]->(s:Stream)
+SET d.x = {x},
+    d.y = {y},
+    s.name = {destinationName}`;
+    let params = {
+      id: operation.id,
+      x: operation.x,
+      y: operation.y,
+      destinationName: operation.destination.name
+    };
+    this.saveAndSend(query, params, operation, callback);
   }
 
   mapStreamUpdate(item) {
     return this.streamDao.mapUpdateStream(item);
   }
 
-  addHelperOrBody(operation, callback) {
-    let sourceIds = operation.source.map((stream) => stream.id);
+  add(operation, callback) {
+    let sourceIds = operation.sources.map((stream) => stream.id);
 
     let sourcesQuery = "";
     let linkSources = "";
@@ -176,7 +197,7 @@ SET o.name = {name},
 
       sourcesQuery += `(source${i}:Stream { uuid: "${sourceIds[i]}" })`;
       linkSources += `(source${i})-[:in]->(op)`;
-      returnSources += "source" + i;
+      returnSources += "source" + i + ".uuid";
     }
 
     let cypher = this.getCreateQuery(
@@ -256,7 +277,7 @@ ${this.returnPartWithProperties(operation.hasHelper() ? `helperId: helper.uuid, 
       id: value.id,
       action: "update",
       body: value.body,
-      sources: value.source.map((stream) => stream.id),
+      sources: value.sources.map((stream) => stream.id),
       destinations: [value.destination.id],
       helperId: value.helper ? value.helper.id : null,
       helperName: value.helper ? value.helper.name : null,
@@ -285,13 +306,24 @@ ${this.returnPartWithProperties(operation.hasHelper() ? `helperId: helper.uuid, 
                 } as retdest, 
                 {
                   sources: [${sources}], 
-                  destination: dest.uuid, 
+                  destinations: collect(dest.uuid), 
                   name: ${relName},
                   id: op.uuid,
                   x: opdraw.x,
                   y: opdraw.y
                   ${propertiesParam}
                 } as relation`;
+  }
+
+  setBody(id, body) {
+    var query = `
+MATCH (o { uuid: {id} }) 
+SET o.body = {body}`;
+    return this.session.run(
+      query, {id: id, body: body}
+    ).catch(
+      logwrapper("ManyToOneOperationDao.setBody")
+    );
   }
 }
 

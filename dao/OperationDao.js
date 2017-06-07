@@ -23,25 +23,42 @@ DELETE directOp`;
     );
   }
 
-  sendFor(streamMapper, relationMapper) {
-    return (results) => {
-      var destinations = results.records.map(
-        (record) => record.get("retdest")
-      );
-      var streams = destinations.map(streamMapper);
-      this.sender.send(streams);
+  sendOperation(relationMapper, operation) {
+    var relations = operation.map(relationMapper);
+    this.sender.send(relations);
+  }
 
-      var relations = results.records.map(
-        (record) => record.get("relation")
-      ).map(relationMapper);
-      this.sender.send(relations);
+  sendDestinations(streamMapper, destinations) {
+    var streams = destinations.map(streamMapper);
+    this.sender.send(streams);
+  }
+
+  sendFor(streamMapper=null, relationMapper=null) {
+    return (results) => {
+      if (streamMapper !== null) {
+        this.sendDestinations(
+          streamMapper,
+          results.records.map(
+            (record) => record.get("retdest")
+          )
+        );
+      }
+
+      if (relationMapper !== null) {
+        this.sendOperation(
+          relationMapper,
+          results.records.map(
+            (record) => record.get("relation")
+          )
+        );
+      }
     }
   }
 
   getAvailable() {
     return () => this.session.run(`
-MATCH (n {name: 'Available operations'}) 
-RETURN labels(n) as labels`
+MATCH (n {name: 'Available operations'})-[:operator]->(op)
+RETURN op.name as name, op.input as input, op.output as output, op.description as description`
     );
   }
 
@@ -49,7 +66,10 @@ RETURN labels(n) as labels`
     return {
       type: "operations",
       action: "add",
-      operations: record.get("labels")
+      name: record.get("name"),
+      input: record.get("input"),
+      output: record.get("output"),
+      description: record.get("description")
     }
   }
 
@@ -63,8 +83,8 @@ RETURN labels(n) as labels`
 {
     id: ${operation}.uuid,
     name: ${name},
-    source: ${src}.uuid,
-    destination: ${dst}.uuid
+    sources: collect(${src}.uuid),
+    destinations: collect(${dst}.uuid)
     ${params}
 }`;
   }
@@ -129,14 +149,16 @@ RETURN labels(n) as labels`
       sources: record.sources,
       destinations: record.destinations,
       id: record.id,
-      programId: record.programId
+      programId: record.programId,
+      x: record.x,
+      y: record.y
     };
 
-    if (ret.name === "sample") {
+    if (ret.name === "sample" || ret.name === "forgetAfter") {
       ret.rate = record.rate.low ? record.rate.low : record.rate;
     }
 
-    if (ret.name === "combine") {
+    if (ret.name === "combine" || ret.name === "merge") {
       ret.x = record.x.low ? record.x.low : record.x;
       ret.y = record.y.low ? record.y.low : record.y;
     }

@@ -12,19 +12,13 @@ define(['knockout'], function (ko) {
                   helperId,
                   helperName) {
         this.operationModule = operationModule;
+        this.availableOperationsModule = availableOperationsModule;
         this.streamModule = streamModule;
         this.id = ko.observable(id);
         this.name = ko.observable(); // this should be set by an
                                      // implementing class
         this.suffix = ko.observable();
         this.programId = ko.observable(programId);
-
-        this.deleteOperation = function () {
-          this.operationModule.remove(
-            this.id(),
-            () => $('#add-op').modal('hide')
-          );
-        };
 
         this.hasProceduralParameter = hasProceduralParameter;
 
@@ -47,7 +41,29 @@ define(['knockout'], function (ko) {
           );
 
           this.selectedHelper = ko.observable(helperModule.get(helperId));
+
+          this.editHelper = function() {
+            return false; // do not submit the form when clicking
+          };
+
+          this.parameterConverter = (s) => s.replace(/ /g, "_").toLowerCase();
         }
+
+        this.operationType = ko.computed(() =>
+          this.availableOperationsModule.find(
+            (operation) => operation.name === this.name(),
+            this
+          )
+        );
+        this.description = ko.computed(() =>
+          this.operationType() ? this.operationType().description : null
+        );
+        this.input = ko.computed(() =>
+          this.operationType() ? this.operationType().input : null
+        );
+        this.output = ko.computed(() =>
+          this.operationType() ? this.operationType().output : null
+        );
       }
 
       // This has to be called by an implementing class
@@ -90,9 +106,11 @@ define(['knockout'], function (ko) {
 
         if (this.hasProceduralParameter) {
           if (this.bodyOrHelper() == "helper") {
-            returnValue.helper = this.helperId() ?
-              this.helperId() :
-              this.selectedHelper().id();
+            //
+            returnValue.helperId = this.selectedHelper ?
+              this.selectedHelper().id() :
+              this.helperId();
+
           } else {
             returnValue.body = this.body();
           }
@@ -126,14 +144,19 @@ define(['knockout'], function (ko) {
         }
       }
 
-      setUpdated(id, body, helperId, helperName, programId=null) {
+      setUpdated(id, programId, body, helperId, helperName) {
         this.id(id);
-        this.body(body);
-        this.helperId(helperId);
-        this.helperName(helperName);
-        this.bodyOrHelper(this.helperName() ? "helper" : "body");
-        if (programId !== null)
+        if (programId !== null) {
           this.programId(programId);
+        }
+
+        if (this.hasProceduralParameter) {
+          this.body(body);
+          this.helperId(helperId);
+          this.helperName(helperName);
+          this.bodyOrHelper(this.helperName() ? "helper" : "body");
+        }
+
         return this;
       }
     }

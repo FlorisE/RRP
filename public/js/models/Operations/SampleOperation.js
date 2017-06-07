@@ -8,7 +8,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
                   programId,
                   source,
                   destination,
-                  rate) {
+                  rate,
+                  connection) {
         super(operationModule,
           availableOperationsModule,
           streamModule,
@@ -16,7 +17,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           programId,
           source,
           destination,
-          false);
+          false,
+          connection);
         this.rate = ko.observable(rate).extend({required: true});
         this.name("sample");
         this.suffix("Sampled");
@@ -37,7 +39,8 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           this.programId(),
           this.source(),
           this.destination(),
-          this.rate()
+          this.rate(),
+          this.connection()
         );
       }
 
@@ -65,11 +68,11 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
         return base;
       }
 
-      update(operation) {
-        this.id(operation.id);
-        this.rate(operation.rate);
-        this.source(operation.source);
-        this.destination(operation.destination);
+      setUpdated(id, rate, source, destination) {
+        this.id(id);
+        this.rate(rate);
+        this.source(source);
+        this.destination(destination);
         return this;
       }
     }

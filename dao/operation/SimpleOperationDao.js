@@ -90,8 +90,8 @@ class SimpleOperationDao extends OperationDao {
 MATCH (source:Stream { uuid: {sourceId} }),
       (source)-[:program]->(program:Program),
       (dest:Stream { uuid: {destinationId} }),
-      (dest)-[:draw_at]->(draw:Draw)
-CREATE (source)-[op:${type} { ${createParams} uuid: {id} }]->(dest)
+      (dest)-[:draw_at]->(draw:Draw) 
+CREATE (source)-[op:${type} { ${createParams} uuid: {id} }]->(dest) 
 RETURN ${this.streamDao.simpleReturnPart("dest", "draw", "program")} as retdest,
        ${this.returnPart("source", "dest", "op")} as relation`
     }

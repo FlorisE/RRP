@@ -1,4 +1,5 @@
-var HelperOrBodyOperationModule = require('./HelperOrBodyOperationModule');
+const HelperOrBodyOperationModule = require('./HelperOrBodyOperationModule');
+const MergeOperation = require('../../models/operation/MergeOperation');
 
 class MergeOperationModule extends HelperOrBodyOperationModule {
 
@@ -10,8 +11,18 @@ class MergeOperationModule extends HelperOrBodyOperationModule {
     super.update("merge", msg, callback)
   }
 
-  add(operation, callback) {
-    this.dao.add(operation, callback);
+  add(msg, callback) {
+    super.add(msg, callback, this.factory);
+  }
+
+  factory(sources, destination, program, msg) {
+    return MergeOperation.create(
+      sources, destination, program, msg.opx, msg.opy
+    );
+  }
+
+  getAdder(operation, callback, msg) {
+    return () => this.dao.add(operation, callback);
   }
 }
 

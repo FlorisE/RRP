@@ -29,8 +29,8 @@
                 )
                     span.glyphicon.glyphicon-remove
                 ul.dropdown-menu(data-bind="foreach: $root.availableOperations")
-                    li
-                        a(data-bind="text: $data, click: $parent.addOperation, attr: { dataType: $data }",
+                    li(data-toggle="tooltip", data-placement="right", data-bind="attr: { title: $data.description }")
+                        a(data-bind="text: $data.name, click: $parent.addOperation, attr: { dataType: $data.name }",
                           data-toggle='modal', data-target='#add-op')
 
     div(data-bind='foreach: { data: unaryoperations, afterAdd: afterAddUnaryOperation }')

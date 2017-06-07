@@ -1,91 +1,149 @@
 define(
-    [
-        '../models/ActuatorStream',
-        '../util/ObservableMap',
-        '../util/FullExtend',
-        './Module'
-    ],
-    function (ActuatorStream,
-              ObservableMap,
-              fullExtend,
-              Module) {
+  [
+    '../models/ActuatorStream',
+    '../util/ObservableMap',
+    '../util/FullExtend',
+    './Module'
+  ],
+  function (ActuatorStream,
+            ObservableMap,
+            fullExtend,
+            Module) {
 
-        class ActuatorStreamModule extends Module {
+    class ActuatorStreamModule extends Module {
 
-            constructor(d, connectionHandler) {
-                super(d);
-                var self = this;
+      constructor(d, connectionHandler) {
+        super(d, connectionHandler);
+        var self = this;
 
-                connectionHandler.register(
-                    "actuatorStream", "add", this.handleAdd.bind(this)
-                );
+        this.connectionHandler.register(
+          "actuatorStream",
+          "add",
+          function (entry) {
+            return self.addActuatorStream(
+              entry.id,
+              entry.name,
+              entry.x,
+              entry.y,
+              d.programModule.get(entry.programId),
+              d.actuatorModule.get(entry.actuatorId),
+              entry.parameters.filter((parameter) => parameter.id)
+            )
+          }
+        );
 
-                connectionHandler.register(
-                    "actuatorStream", "update", this.handleUpdate.bind(this)
-                );
-            }
+        this.connectionHandler.register(
+          "actuatorStream",
+          "update",
+          function (entry) {
+            return self.processUpdateActuatorStream(
+              entry.id,
+              entry.name,
+              entry.x,
+              entry.y,
+              d.programModule.get(entry.programId),
+              d.actuatorModule.get(entry.actuatorId),
+              entry.parameters.filter((parameter) => parameter.id)
+            )
+          }
+        );
+      }
 
-            handleAdd(entry) {
-                return this.addActuatorStream(
-                    entry.id,
-                    entry.name,
-                    entry.x,
-                    entry.y,
-                    this.programModule.get(entry.programId),
-                    this.actuatorModule.get(entry.actuatorId)
-                )
-            }
+      handleAdd(entry) {
+        return this.addActuatorStream(
+          entry.id,
+          entry.name,
+          entry.x,
+          entry.y,
+          this.programModule.get(entry.programId),
+          this.actuatorModule.get(entry.actuatorId),
+          entry.parameters.filter((parameter) => parameter.id)
+        )
+      }
 
-            handleUpdate(entry) {
-                let stream = this.get(entry.id);
+      handleUpdate(entry) {
+        let stream = this.get(entry.id);
 
-                stream.name(entry.name);
-                stream.x(entry.x);
-                stream.y(entry.y);
-                stream.program = this.programModule.get(entry.programId);
-                stream.actuator = this.actuatorModule.get(entry.actuatorId);
-            }
+        stream.name(entry.name);
+        stream.x(entry.x);
+        stream.y(entry.y);
+        stream.program = this.programModule.get(entry.programId);
+        stream.actuator = this.actuatorModule.get(entry.actuatorId);
+        stream.parameters = entry.parameters;
+      }
 
-            addActuatorStream(id, name, x, y, program, actuator) {
-                var stream = new ActuatorStream(
-                    this, id, name, x, y, program, actuator
-                );
-                return this.add(id, stream);
-            }
+      addActuatorStream(id, name, x, y, program, actuator, parameters) {
+        var stream = new ActuatorStream(
+          this, id, name, x, y, program, actuator, parameters
+        );
 
-            save() {
-                console.log("save in actuator stream");
-            }
+        return this.add(id, stream);
+      }
 
-            get(id) {
-                return this.d.streamModule.get(id);
-            }
+      processUpdateActuatorStream(id, name, x, y, program, actuator, parameters) {
+        var actuatorStream = this.get(id);
 
-            getAll() {
-                return this.d.streamModule.getAll();
-            }
+        actuatorStream.name(name);
+        actuatorStream.x(x);
+        actuatorStream.y(y);
+        actuatorStream.program = program;
+        actuatorStream.actuator = actuator;
+        actuatorStream.parameters.removeAll();
 
-            add(id, stream) {
-                this.d.streamModule.add(id, stream);
-            }
+        parameters.forEach(
+          (parameter) => actuatorStream.parameters.push(parameter)
+        );
+      }
 
-            update(id, stream) {
-                this.d.streamModule.update(id, stream);
-            }
+      updateActuatorStream(id, name, programId, x, y, parameters, callback) {
+        this.connectionHandler.emit(
+          {
+            type: "actuatorStream",
+            action: "update",
+            id: id,
+            name: name,
+            x: x,
+            y: y,
+            parameters: parameters,
+            programId: programId
+          },
+          callback
+        );
+      }
 
-            delete(id) {
-                this.d.streamModule.delete(id);
-            }
+      save() {
+        console.log("save in actuator stream");
+      }
 
-            clear() {
-                this.d.streamModule.clear();
-            }
+      get(id) {
+        return this.d.streamModule.get(id);
+      }
 
-            register(observer) {
-                this.d.streamModule.register(observer);
-            }
-        }
+      getAll() {
+        return this.d.streamModule.getAll();
+      }
 
-        return ActuatorStreamModule;
+      add(id, stream) {
+        this.d.streamModule.add(id, stream);
+      }
+
+      update(id, stream) {
+        this.d.streamModule.update(id, stream);
+      }
+
+      delete(id) {
+        this.d.streamModule.delete(id);
+      }
+
+      clear() {
+        this.d.streamModule.clear();
+      }
+
+      register(observer) {
+        this.d.streamModule.register(observer);
+      }
     }
+
+    return ActuatorStreamModule;
+  }
 );

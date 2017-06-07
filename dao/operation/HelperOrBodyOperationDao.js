@@ -60,8 +60,8 @@ SET o.body = {body}`;
 MATCH (src:Stream)-[:in]->(o:Operation { uuid: {id} }),
       (o)-[:out]->(retdest:Stream),
       (o)-[hr:helper]->(:Helper)
-DELETE hr
-CREATE (src)-[relation:${type} { uuid: o.uuid, body: {body} }]->(retdest)`;
+CREATE (src)-[relation:${type} { uuid: o.uuid, body: {body} }]->(retdest)
+DETACH DELETE o`;
     return this.session.run(
       query, {id: id, body: body}
     ).catch(
@@ -89,15 +89,28 @@ DELETE o`;
   addBody(operation, callback) {
     let id = uuid.v4(),
       body = operation.body,
-      sourceId = operation.source.id,
       operationName = operation.name,
       destinationId = operation.destination.id;
 
+    let wherePart;
+    let multipleSources = false;
+    if (operation.source) {
+      wherePart = `source.uuid = "${operation.source.id}"`;
+    } else if (operation.sources) {
+      wherePart = operation.sources.map(
+        (source) => `source.uuid = "${source.id}"`
+      ).join(" or ");
+      multipleSources = true;
+    } else {
+      throw "Either source or sources has to be specified.";
+    }
+
     let cypher = `
-MATCH (source:Stream { uuid: {sourceId} }),
+MATCH (source:Stream),
       (source)-[:program]->(program:Program),
       (dest:Stream { uuid: {destinationId} }),
       (dest)-[:draw_at]->(draw:Draw)
+WHERE ${wherePart}
 CREATE (source)-[op:${operationName} { body: {body}, uuid: {id} }]->(dest)
 ${this.returnPartWithProperties('body: op.body', 'type(op)')}`;
 
@@ -106,6 +119,31 @@ ${this.returnPartWithProperties('body: op.body', 'type(op)')}`;
       {
         id: id,
         body: body,
+        destinationId: destinationId,
+      }
+    );
+
+    return this.finishAdd(promise, callback);
+  }
+
+  addBasic(operation, callback) {
+    let id = uuid.v4(),
+      sourceId = operation.sources.map((source) => source.id),
+      operationName = operation.name,
+      destinationId = operation.destination.id;
+
+    let cypher = `
+MATCH (source:Stream { uuid: {sourceId} }),
+      (source)-[:program]->(program:Program),
+      (dest:Stream { uuid: {destinationId} }),
+      (dest)-[:draw_at]->(draw:Draw)
+CREATE (source)-[op:${operationName} { uuid: {id} }]->(dest)
+${this.returnPartWithProperties('', 'type(op)')}`;
+
+    let promise = this.session.run(
+      cypher,
+      {
+        id: id,
         sourceId: sourceId,
         destinationId: destinationId,
       }
@@ -162,75 +200,6 @@ RETURN {
     }
   }
 
-  /*getOperationWithBody(programId, operationId) {
-    return () => {
-      var params = {
-        programId: programId
-      };
-
-      var match = `
-MATCH (s1:Stream)-[r]->(s2), 
-      (s1:Stream)-[r2]->(p:Program), 
-      (ops {name: 'Available operations'}) `;
-      var where = `
-WHERE type(r) IN labels(ops)
-  AND p.uuid = {programId}`;
-      var returnV = `
-RETURN {
-         sources: collect(s1.uuid), 
-         destinations: collect(s2.uuid), 
-         name: type(r), 
-         body: r.body, 
-         id: r.uuid, 
-         rate: r.rate,
-         programId: p.uuid
-       } as relation`;
-
-      if (operationId) {
-        params.operationId = operationId;
-        where += ` AND s1.uuid = {operationId} `;
-      }
-
-      var cypher = match + where + returnV;
-      return this.session.run(cypher, params);
-    };
-  }
-
-  getOperationWithHelper(programId, operationId) {
-    return () => {
-      var params = {
-        programId: programId
-      };
-
-      var match = `MATCH (s1:Stream)-[:in]->(o:Operation),
-                         (o)-[:out]->(s2:Stream), 
-                         (o)-[:helper]->(l:Helper),
-                         (s1:Stream)-[r2]->(p:Program),
-                         (o)-[:type]->(t:OperationType) `;
-      var where = ` WHERE p.uuid = {programId} `;
-      var optionalMatch = ` OPTIONAL MATCH (o)-[:draw_at]->(d:Draw) `;
-      var returnV = `RETURN {
-                              sources: collect(s1.uuid), 
-                              destinations: collect(s2.uuid), 
-                              name: o.name, 
-                              id: o.uuid, 
-                              helperId: l.uuid,
-                              helperName: l.name, 
-                              x: d.x, 
-                              y: d.y,
-                              programId: p.uuid
-                           } as relation`;
-
-      if (operationId) {
-        params.operationId = operationId;
-        where += ` AND s1.uuid = {operationId} `;
-      }
-
-      var cypher = match + where + optionalMatch + returnV;
-      return this.session.run(cypher, params);
-    };
-  }*/
-
   addHelper(operation, callback) {
     let sourceId = operation.source.id,
       destinationId = operation.destination.id,
@@ -286,7 +255,9 @@ ${this.returnPartWithProperties(`helperId: helper.uuid, helperName: helper.name`
   save(query, operation, callback) {
     var params = {
       id: operation.id,
-      destinationName: operation.destination.name
+      destinationName: operation.destination.name,
+      x: operation.x,
+      y: operation.y
     };
     return this.session.run(query, params).then(
       (result) => {
@@ -410,8 +381,8 @@ RETURN ${operation}.uuid as id,
                   programId: program.uuid
                 } as retdest, 
                 {
-                  source: source.uuid, 
-                  destination: dest.uuid, 
+                  sources: collect(source.uuid), 
+                  destinations: collect(dest.uuid), 
                   name: ${relName},
                   id: op.uuid
                   ${propertiesParam}

@@ -1,4 +1,4 @@
-#insert-sensor.modal.fade(role='dialog',tabindex="-1",data-bind="with: insertSensorModal")
+#insert-actuator.modal.fade(role='dialog',tabindex="-1",data-bind="with: insertActuatorModal")
     .modal-dialog(role='document')
         .modal-content
             form(data-bind="submit: save")
@@ -9,7 +9,7 @@
                         label(for='field-type') Type
                         input#field-type.form-control(
                         placeholder="Name",
-                        data-bind="value: sensor.name()"
+                        data-bind="value: actuator.name()"
                         disabled
                         )
                     .form-group
@@ -77,6 +77,21 @@
                         )
                         input#field-rate.form-control(
                         type='number',
+                        data-bind="value: $data.value, " +
+                        "attr: { id: 'field-param-' + $data.name }"
+                        )
+                    <!-- /ko -->
+                    <!-- ko if: $data.type == 'string' -->
+                    .form-group(
+                    data-bind="attr: { id: 'form-param-' + $data.name } "
+                    )
+                        label.form-group(
+                        data-bind="" +
+                        "attr: { for: 'field-param-' + $data.name }," +
+                        "html: $data.name "
+                        )
+                        input.form-control(
+                        type='text',
                         data-bind="value: $data.value, " +
                         "attr: { id: 'field-param-' + $data.name }"
                         )

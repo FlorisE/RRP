@@ -10,6 +10,10 @@ class CombineOperationDao extends ManyToOneOperationDao {
     return super.get(id, "combine", callback);
   }
 
+  add(operation, callback) {
+    return super.add(operation, callback);
+  }
+
   map(operation) {
     return new CombineOperation(
       operation.id,

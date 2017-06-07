@@ -1,28 +1,31 @@
 "use strict";
-const SingleStreamOutputOperation = require("./SingleStreamOutputOperation");
 const uuid = require('node-uuid');
+const Operation = require('./Operation');
 
-class ManyToOneOperation extends SingleStreamOutputOperation {
+class ManyToOneOperation extends Operation {
 
-  constructor(id/* : uuid */, sources/* : Stream[] */,
+  constructor(id/* : uuid */,
+              sources/* : Stream[] */,
               destination/* : Stream */,
               program/* : Program */,
               x/* : Int */,
               y/* : Int */) {
-    super(id, sources, destination, program);
+    super(id, program);
+    this.sources = sources;
+    this.destination = destination;
     this.x = x;
     this.y = y;
   }
 
-  static create(sources/* : Stream */,
-                destination/* : Stream */,
+  static create(sources/* : Stream[] */,
+                destination/* : Stream[] */,
                 program/* : Program */,
                 x/* Int */,
                 y/* Int */) {
-    return new ManyToOneHelperBodyOperation(uuid.v4(), sources, destination, program, x, y);
+    return new ManyToOneOperation(uuid.v4(), sources, destination, program, x, y);
   }
 
-  getUpdatePromises() {
+  getUpdatePromises(newValues, dao) {
     let promises = [];
 
     let changesToInputStreams = this.getChangesToInputStreams(newValues, dao);
@@ -46,7 +49,7 @@ class ManyToOneOperation extends SingleStreamOutputOperation {
       this.y = newValues.y;
     }
 
-    let promises = this.getUpdatePromises();
+    let promises = this.getUpdatePromises(newValues, dao);
 
     if (promises.length > 0) {
       Promise.all(promises).then(
@@ -58,7 +61,7 @@ class ManyToOneOperation extends SingleStreamOutputOperation {
   }
 
   getChangesToInputStreams(newValues, dao) {
-    let sourceIds = this.source.map(
+    let sourceIds = this.sources.map(
       (source) => source.id
     );
 

@@ -1,4 +1,4 @@
-const CombineOperation = require("../../models/operation/CombineOperation");
+const MergeOperation = require("../../models/operation/MergeOperation");
 const ManyToOneOperationDao = require("./ManyToOneOperationDao");
 const StreamDao = require("../StreamDao");
 const logwrapper = require("../../util/logwrapper");
@@ -7,7 +7,7 @@ const uuid = require('node-uuid');
 class MergeOperationDao extends ManyToOneOperationDao {
 
   get(id, callback) {
-    return get(id, "merge", callback);
+    return super.get(id, "merge", callback);
   }
 
   map(operation) {

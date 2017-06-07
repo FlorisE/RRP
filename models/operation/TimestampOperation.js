@@ -1,8 +1,8 @@
 "use strict";
-const SingleStreamOutputOperation = require("./SingleStreamOutputOperation");
+const OneToOneOperation = require("./OneToOneOperation");
 const uuid = require('node-uuid');
 
-class TimestampOperation extends SingleStreamOutputOperation {
+class TimestampOperation extends OneToOneOperation {
 
     constructor(id/* : uuid */,
                 source/* : Stream */,

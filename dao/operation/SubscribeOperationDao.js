@@ -4,40 +4,46 @@ const SubscribeOperation = require("../../models/operation/SubscribeOperation");
 
 class SubscribeOperationDao extends SimpleOperationDao {
 
-    constructor(session, sender, moduleFactory) {
-        super(session, sender, moduleFactory);
-        this.streamDao = moduleFactory.loadDao("ActuatorStream");
-        this.actuatorStreamModule = moduleFactory.getModule("ActuatorStream");
-    }
+  constructor(session, sender, moduleFactory) {
+    super(session, sender, moduleFactory);
+    this.streamDao = moduleFactory.loadDao("ActuatorStream");
+    this.actuatorStreamModule = moduleFactory.getModule("ActuatorStream");
+  }
 
-    makeGetQuery() {
-        return super.makeGetQuery("subscribe");
-    }
+  makeGetQuery() {
+    return super.makeGetQuery("subscribe");
+  }
 
-    makeAddQuery() {
-        return super.makeAddQuery("subscribe");
-    }
+  makeAddQuery() {
+    return super.makeAddQuery("subscribe");
+  }
 
-    makeSaveQuery() {
-        return super.makeSaveQuery("subscribe");
-    }
+  makeSaveQuery() {
+    return super.makeSaveQuery("subscribe");
+  }
 
-    getModelFromRecord(id, source, destination, program, record, callback) {
-        callback(
-            new SubscribeOperation(
-                id, source, destination, program
-            )
-        )
-    }
+  getModelFromRecord(id, source, destination, program, record, callback) {
+    callback(
+      new SubscribeOperation(
+        id, source, destination, program
+      )
+    )
+  }
 
-    returnPart(src, dst, operation) {
-        return super.returnPart(src, dst, operation, `type(${operation})`);
-    }
+  returnPart(src, dst, operation) {
+    return super.returnPart(src, dst, operation, `type(${operation})`);
+  }
 
-    getDestination(id) {
-        return this.actuatorStreamModule.get(id);
-    }
+  getDestination(id) {
+    return this.actuatorStreamModule.get(id);
+  }
 
+  finishAdd(promise, callback) {
+    return this.finish(
+      null, this.mapRelationAdd.bind(this),
+      promise, callback
+    );
+  }
 }
 
 module.exports = SubscribeOperationDao;
