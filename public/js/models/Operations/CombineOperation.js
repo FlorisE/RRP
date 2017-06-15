@@ -24,25 +24,26 @@ define([
                   y,
                   body,
                   helperId,
-                  helperName) {
-          super(
-            operationModule,
-            availableOperationsModule,
-            streamModule,
-            editorModule,
-            programModule,
-            id,
-            programId,
-            sources,
-            destination,
-            x,
-            y,
-            true,
-            helperModule,
-            body,
-            helperId,
-            helperName
-          );
+                  helperName,
+                  connection) {
+        super(operationModule,
+          availableOperationsModule,
+          streamModule,
+          editorModule,
+          programModule,
+          id,
+          programId,
+          sources,
+          destination,
+          x,
+          y,
+          true,
+          helperModule,
+          body,
+          helperId,
+          helperName,
+          connection
+        );
         this.availableOperationsModule = availableOperationsModule;
         this.name("combine");
         this.suffix("Combined");
@@ -65,20 +66,9 @@ define([
           this.y(),
           this.body(),
           this.helperId(),
-          this.helperName()
+          this.helperName(),
+          this.connection()
         );
-      }
-
-      modal() {
-        super.modal();
-        if (!this.id()) {
-          this.outputStreamName = ko.observable(
-            this.sourceInstances.length > 0
-              ? this.sourceInstances[0].name() + "Combined"
-              : "Combined"
-          );
-        }
-        return this;
       }
     }
 

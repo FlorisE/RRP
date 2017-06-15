@@ -8,7 +8,7 @@ require.config({
     "bootstrap": {
       "deps": ['jquery']
     },
-    "jsbplumb": {
+    "jsplumb": {
       exports: 'jsPlumb'
     },
     "knockout": {

@@ -45,7 +45,8 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             span.input-group-btn
                                 button.btn.btn-default(
                                     type="button",
-                                    data-bind="click: appendItem"
+                                    data-bind="click: appendItem, " +
+                                              "enable: addInputStreamActive()"
                                 )
                                     span.glyphicon.glyphicon-plus
                                     | Add
@@ -63,21 +64,6 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                                     span.glyphicon.glyphicon-remove
                         // /ko
                     // /ko
-                    // ko if: name() !== "subscribe"
-                    // ko if: $root.nonSensorOrphans().length > 0 && !id()
-                    //.alert.alert-info To connect to an orphaned stream, you can enter its name as output stream.
-                    // /ko
-                    // ko if: id()
-                    //.alert.alert-info Changing the output stream name in this form will rename the output stream.
-                    // /ko
-                    .form-group
-                        label(for='output-stream-name') Output stream name
-                        input#output-stream-name.form-control(
-                            type='text',
-                            placeholder="Output stream name",
-                            data-bind="value: outputStreamName"
-                        )
-                    // /ko
                     // ko if: name() === "map" || name() === "filter" || name() === "combine"
                     .well
                         //.alert.alert-info This operation requires either a body to be implemented or a helper to be specified.
@@ -91,7 +77,7 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                                 input#field-lambda.form-control(
                                     type='text',
                                     placeholder="Body",
-                                    data-bind="value: body, enable: hasBody()"
+                                    data-bind="value: body, enable: hasBody(), valueUpdate: 'afterkeydown'"
                                 )
                                 //.input-group-addon(data-bind="text: lambdaOutput()")
                         .form-group#form-helper
@@ -115,7 +101,22 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                         input#field-rate.form-control(
                             type='number',
                             placeholder="Rate",
-                            data-bind="value: rate"
+                            data-bind="value: rate, valueUpdate: 'afterkeydown'"
+                        )
+                    // /ko
+                    // ko if: name() !== "subscribe"
+                    // ko if: $root.nonSensorOrphans().length > 0 && !id()
+                    //.alert.alert-info To connect to an orphaned stream, you can enter its name as output stream.
+                    // /ko
+                    // ko if: id()
+                    //.alert.alert-info Changing the output stream name in this form will rename the output stream.
+                    // /ko
+                    .form-group
+                        label(for='output-stream-name') Output stream name
+                        input#output-stream-name.form-control(
+                        type='text',
+                        placeholder="Output stream name",
+                        data-bind="value: outputStreamName, valueUpdate: 'afterkeydown'",
                         )
                     // /ko
                     // ko if: name() == "subscribe"
@@ -135,4 +136,4 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             // /ko
                         .col-md-8
                             a.btn.btn-default(data-dismiss="modal") Close
-                            button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save
+                            button.btn.btn-primary(type="submit", data-bind="enable: isValid()") Save

@@ -50,10 +50,6 @@ class SampleOperationDao extends SimpleOperationDao {
             src, dst, operation, `type(${operation})`, `rate: ${operation}.rate`
         );
     }
-
-    getDestination(id) {
-        return this.streamModule.get(id);
-    }
 }
 
 module.exports = SampleOperationDao;

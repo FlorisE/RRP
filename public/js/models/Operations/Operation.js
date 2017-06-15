@@ -19,12 +19,12 @@ define(['knockout'], function (ko) {
                                      // implementing class
         this.suffix = ko.observable();
         this.programId = ko.observable(programId);
+        this.program = this.streamModule.program;
 
         this.hasProceduralParameter = hasProceduralParameter;
 
         if (hasProceduralParameter) {
           this.helperModule = helperModule;
-          this.body = ko.observable(body);
           this.helperId = ko.observable(helperId);
           this.helperName = ko.observable(helperName);
 
@@ -39,6 +39,12 @@ define(['knockout'], function (ko) {
           this.hasBody = ko.computed(
             () => this.bodyOrHelper() === "body"
           );
+
+          this.body = ko.observable(body).extend({
+            required: {
+              onlyIf: () => this.hasBody()
+            }
+          });
 
           this.selectedHelper = ko.observable(helperModule.get(helperId));
 
@@ -158,6 +164,10 @@ define(['knockout'], function (ko) {
         }
 
         return this;
+      }
+
+      getValidatorModel() {
+        return {};
       }
     }
 

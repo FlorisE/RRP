@@ -20,12 +20,20 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           source,
           destination,
           false,
+          null,
+          null,
+          null,
+          null,
           connection
         );
         this.name("subscribe");
         this.suffix("Subscribed");
+        this.programModule = this.streamModule.programModule;
+        this.editorModule = this.programModule.editorModule;
+        this.editor = this.editorModule.getEditor();
+        this.defaultActuator = this.editor.availableActuators()[0];
         this.selectedOutputModule = ko.observable(
-          destination ? this.destinationInstance.actuator : null
+          destination ? this.destinationInstance.actuator : this.defaultActuator
         );
 
         super.initLabel();
@@ -59,12 +67,10 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
         return base;
       }
 
-      modal() {
-        super.modal();
-        this.outputStreamName = ko.observable(
-          this.selectedOutputModule()
-        );
-        return this;
+      formatOutputStreamName() {
+        return this.selectedOutputModule() ?
+          this.selectedOutputModule().name() :
+          null;
       }
     }
 

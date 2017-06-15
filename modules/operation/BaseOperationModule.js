@@ -19,14 +19,16 @@ class BaseOperationModule {
             ([program, source]) => {
                 let destination = this.getDestination(msg, program);
 
-                let operation = this.createOperationFromMsg(
-                    source, destination, program, msg
-                );
+                destination.then(
+                  (destination) => {
+                      let operation = this.createOperationFromMsg(
+                        source, destination, program, msg
+                      );
 
-                this.streamModule.save(destination).then(
-                    () => this.dao.add(
+                      this.dao.add(
                         operation, callback
-                    )
+                      );
+                    }
                 );
             },
           logwrapper("BaseOperationModule.add:Query")

@@ -18,6 +18,10 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           source,
           destination,
           false,
+          null,
+          null,
+          null,
+          null,
           connection);
         this.rate = ko.observable(rate).extend({required: true});
         this.name("forgetAfter");
@@ -44,16 +48,6 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
         );
       }
 
-      modal() {
-        super.modal();
-        if (!this.id()) {
-          this.outputStreamName = ko.observable(
-            this.sourceInstance.name() + this.suffix()
-          );
-        }
-        return this;
-      }
-
       getCreateMessage() {
         var base = super.getCreateMessage();
         base.rate = this.rate();
@@ -74,6 +68,14 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
         this.source(source);
         this.destination(destination);
         return this;
+      }
+
+      getValidatorModel() {
+        let validatorModel = super.getValidatorModel();
+
+        validatorModel.rate = this.rate;
+
+        return validatorModel;
       }
     }
 

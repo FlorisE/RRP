@@ -27,10 +27,6 @@ class TimestampOperationDao extends SimpleOperationDao {
     returnPart(src, dst, operation) {
         return super.returnPart(src, dst, operation, `type(${operation})`);
     }
-
-    getDestination(id) {
-        return this.streamModule.get(id);
-    }
 }
 
 module.exports = TimestampOperationDao;

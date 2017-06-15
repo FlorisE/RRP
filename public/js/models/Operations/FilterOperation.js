@@ -51,16 +51,6 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           this.connection()
         )
       }
-
-      modal() {
-        super.modal();
-        if (!this.id()) {
-          this.outputStreamName = ko.observable(
-            this.sourceInstance.name() + this.suffix()
-          );
-        }
-        return this;
-      }
     }
 
     return FilterOperation

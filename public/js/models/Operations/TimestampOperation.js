@@ -1,13 +1,16 @@
 define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
 
     class TimestampOperation extends OneToOneOperation {
-      constructor(operationModule,
-                  availableOperationsModule,
-                  streamModule,
-                  id,
-                  programId,
-                  source,
-                  destination) {
+      constructor(
+        operationModule,
+        availableOperationsModule,
+        streamModule,
+        id,
+        programId,
+        source,
+        destination,
+        connection
+      ) {
         super(
           operationModule,
           availableOperationsModule,
@@ -16,7 +19,12 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           programId,
           source,
           destination,
-          false
+          false,
+          null,
+          null,
+          null,
+          null,
+          connection
         );
 
         this.name("timestamp");
@@ -33,18 +41,9 @@ define(['knockout', './OneToOneOperation'], function (ko, OneToOneOperation) {
           this.id(),
           this.programId(),
           this.source(),
-          this.destination()
+          this.destination(),
+          this.connection()
         );
-      }
-
-      modal() {
-        super.modal();
-        if (!this.id()) {
-          this.outputStreamName = ko.observable(
-            this.sourceInstance.name() + this.suffix()
-          );
-        }
-        return this;
       }
     }
 

@@ -1,10 +1,11 @@
 define([
-    'util/ObservableMapToKOObservableArray',
-    'util/ObservableArrayToKOObservableArray',
-    'util/JSPlumbInstance',
+    '../util/ObservableMapToKOObservableArray',
+    '../util/ObservableArrayToKOObservableArray',
+    '../util/JSPlumbInstance',
     './Operations/OperationFactory',
     './Helper',
-    './Operations/Operation'
+    './Operations/Operation',
+    '../util/validation'
   ],
   function (mtoa,
             atoa,
@@ -30,7 +31,7 @@ define([
         this.helperModal = ko.observable();
         this.insertSensorModal = ko.observable();
         this.insertActuatorModal = ko.observable();
-        this.operationModal = ko.observable();
+        this.operationModal = ko.validatedObservable();
 
         this.editorModule = editorModule;
         this.programModule = programModule;

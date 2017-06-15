@@ -27,7 +27,7 @@
                     data-bind='visible: menuVisible && deletable, ' +
                               'click: deleteClicked'
                 )
-                    span.glyphicon.glyphicon-remove
+                    span.glyphicon.glyphicon-trash
                 ul.dropdown-menu(data-bind="foreach: $root.availableOperations")
                     li(data-toggle="tooltip", data-placement="right", data-bind="attr: { title: $data.description }")
                         a(data-bind="text: $data.name, click: $parent.addOperation, attr: { dataType: $data.name }",

@@ -43,7 +43,14 @@ define(
 
       this.editorModule = editorModule;
       this.programModule = programModule;
-      this.sources = ko.observableArray(sources);
+      this.sources = ko.observableArray(sources).extend(
+        {
+          minArrayLength: {
+            params: { minLength: 1 },
+            message: "At least one source stream is required."
+          }
+        }
+      );
       this.destination = ko.observable(destination);
       this.x = ko.observable(x);
       this.y = ko.observable(y);
@@ -83,12 +90,6 @@ define(
       this.selectedStreamToAdd = ko.observable(null);
       this.xpx = ko.computed(() => this.x() + "px");
       this.ypx = ko.computed(() => this.y() + "px");
-
-      this.outputStreamName = ko.observable(
-        this.destinationInstance ?
-          this.destinationInstance.name() :
-          null
-      );
 
       // overwrites the base class
        this.deleteOperation = function () {
@@ -222,6 +223,10 @@ define(
 
       const self = this;
 
+      this.outputStreamName = ko.observable(
+        this.formatOutputStreamName()
+      ).extend({ required: true });
+
       this.availableInputStreams = ko.computed(() => {
         let isNotParent = (stream) => this.inputStreams().find(
           (instance) => instance === stream
@@ -237,9 +242,15 @@ define(
         );
       });
 
+      this.addInputStreamActive = ko.computed(
+        () => this.availableInputStreams().length > 0
+      );
+
       if (this.hasProceduralParameter) {
         this.parameters = ko.computed(() =>
-          this.inputStreams().map((stream) => this.parameterConverter(stream.name())).join(", ")
+          this.inputStreams().map(
+            (stream) => this.parameterConverter(stream.name())
+          ).join(", ")
         );
       }
 
@@ -250,7 +261,32 @@ define(
         self.inputStreams.remove(stream);
       };
 
+      this.validatorModel = ko.validatedObservable(this.getValidatorModel());
+
+      this.isValid = ko.computed(
+        () => this.validatorModel.isValid() && this.inputStreams().length > 0
+      );
+
       return this;
+    }
+
+    formatOutputStreamName() {
+      // temporarily disabled for experiment:
+      return this.destinationInstance ?
+        this.destinationInstance.name() :
+        "";
+      /*this.suffix() !== "" ?
+       this.sourceInstance.name() + this.suffix() :
+       null;*/
+    }
+
+    getValidatorModel() {
+      let validatorModel = super.getValidatorModel();
+
+      validatorModel.outputStreamName = this.outputStreamName;
+      validatorModel.body = this.body;
+
+      return validatorModel;
     }
 
     getCreateMessage() {

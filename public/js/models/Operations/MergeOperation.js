@@ -56,18 +56,6 @@ define([
           this.y()
         );
       }
-
-      modal() {
-        super.modal();
-        if (!this.id()) {
-          this.outputStreamName = ko.observable(
-            this.sourceInstances.length > 0
-              ? this.sourceInstances[0].name() + this.suffix()
-              : this.suffix()
-          );
-        }
-        return this;
-      }
     }
 
     return MergeOperation
