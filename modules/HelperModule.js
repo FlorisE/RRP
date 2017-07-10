@@ -26,10 +26,8 @@ class HelperModule {
     }
   }
 
-  get(id) {
-    return new Promise(
-      (resolve, reject) => this.dao.get(id, resolve, reject)
-    );
+  async get(id) {
+    return await this.dao.get(id);
   }
 
   add(msg, callback) {

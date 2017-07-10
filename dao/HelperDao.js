@@ -33,10 +33,9 @@ class HelperDao {
         {id: id}
       );
       let helper = runQuery.records[0].get("helper");
-      resolve(new Helper(helper.id, helper.name, helper.parameterName, helper.body));
+      return new Helper(helper.id, helper.name, helper.parameterName, helper.body);
     } catch (err) {
       console.log("HelperDao.get: " + err);
-      reject();
     }
   }
 

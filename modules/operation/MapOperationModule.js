@@ -27,15 +27,11 @@ class MapOperationModule extends HelperOrBodyOperationModule {
     );
   }
 
-  addWithHelperOrBody(helperId, body, operation, callback) {
+  async addWithHelperOrBody(helperId, body, operation, callback) {
     if (helperId != null) {
-      this.helperModule.get(helperId).then(
-        (helper) => {
-          operation.addHelper(helper);
-
-          this.dao.addHelper(operation, callback);
-        }
-      );
+      let helper = await this.helperModule.get(helperId);
+      operation.addHelper(helper);
+      this.dao.addHelper(operation, callback);
     } else {
       operation.addBody(body);
       this.dao.addBody(operation, callback);
