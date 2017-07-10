@@ -42,7 +42,7 @@ class Cepy {
             } else {
                 closed();
             }
-            this.processes.delete(id);
+            this.processes.remove(id);
         };
 
         let on_out = (message) => {

@@ -9,15 +9,29 @@
                         .col-md-12
                             input(type='hidden', data-bind='value: id')
                             .form-group
-                                label(for='field-name') Name
+                                label(for='field-name') Helper name
                                 input#field-name.form-control(
                                 placeholder="Name",
                                 data-bind="value: name"
                                 )
+                            .form-group
+                                label(for='field-parameter-name') Parameter name
+                                input#field-parameter-name.form-control(
+                                placeholder="Name",
+                                data-bind="value: parameterName"
+                                )
                     div.row
                         .col-md-12
-                            input(type='hidden', data-bind='value: body')
-                            div#field-body.ace-editor
+                            .form-group
+                                label Body
+                                input(type='hidden', data-bind='value: body')
+                                div#field-body.ace-editor
                 .modal-footer
-                    a.btn.btn-default(data-dismiss="modal") Close
-                    //button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save
+                    .row
+                        .col-md-4.text-left
+                            // ko if: id()
+                            .btn.btn-danger(data-bind="click: remove") Delete
+                            // /ko
+                        .col-md-8
+                            a.btn.btn-default(data-dismiss="modal") Close
+                            button.btn.btn-primary(type="submit", data-binding="enable: isValid()") Save

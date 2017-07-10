@@ -1,31 +1,48 @@
 var uuid = require('node-uuid');
 
 class HelperModule {
-    constructor(dao) {
-        this.dao = dao;
-    }
+  constructor(dao) {
+    this.dao = dao;
+  }
 
-    getAll() {
-        return this.dao.getAll();
+  async loadAll(msg, callback) {
+    try {
+      let helpers = await this.dao.loadAll();
+      for (let helper of helpers) {
+        this.dao.send(
+          {
+            type: "helper",
+            action: "add",
+            id: helper.id,
+            name: helper.name,
+            parameterName: helper.parameterName,
+            body: helper.body
+          }
+        )
+      }
+      if (callback) callback();
+    } catch (err) {
+      console.log("HelperModule.loadAll: " + err);
     }
+  }
 
-    get(id) {
-        return new Promise(
-            (resolve, reject) => this.dao.get(id, resolve, reject)
-        );
-    }
+  get(id) {
+    return new Promise(
+      (resolve, reject) => this.dao.get(id, resolve, reject)
+    );
+  }
 
-    sendToClient() {
-        return this.dao.sendToClient();
-    }
+  add(msg, callback) {
+    return this.dao.add(msg.name, msg.parameterName, msg.body, callback);
+  }
 
-    add(msg, callback) {
-        return this.dao.add(msg.name, msg.body, callback);
-    }
+  remove(msg, callback) {
+    return this.dao.remove(msg.id, callback);
+  }
 
-    update(msg, callback) {
-        return this.dao.update(msg.id, msg.name, msg.body, callback);
-    }
+  update(msg, callback) {
+    return this.dao.update(msg.id, msg.name, msg.parameterName, msg.body, callback);
+  }
 }
 
 module.exports = HelperModule;

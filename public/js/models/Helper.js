@@ -2,15 +2,18 @@ define(["lib/ace"], function () {
 
     class Helper {
 
-      constructor(helperModule, id, name, body) {
+      // Body has to be managed manually
+
+      constructor(helperModule, id, name, parameterName, body) {
         this.helperModule = helperModule;
         this.id = ko.observable(id);
         this.name = ko.observable(name);
+        this.parameterName = ko.observable(parameterName);
         this.body = ko.observable(body ? body : "");
       }
 
       modal() {
-        var editor = ace.edit("field-body");
+        const editor = ace.edit("field-body");
         editor.setValue(this.body());
         this.body.subscribe(function (newValue) {
           editor.setValue(newValue);
@@ -20,14 +23,28 @@ define(["lib/ace"], function () {
         return this;
       }
 
-      save() {
-        var editor = ace.edit("field-body");
-        var body = editor.getValue();
+      remove() {
+        const id = this.id();
+        if (id) {
+          this.helperModule.remove(id, Helper.closeModal);
+        } else {
+          console.log("Trying to remove a helper that has no id");
+        }
+      }
 
-        if (this.id()) { // update
-          this.helperModule.update(this.id(), this.name(), body);
+      static closeModal() {
+        $('#add-helper').modal('hide');
+      }
+
+      save() {
+        const editor = ace.edit("field-body");
+        const body = editor.getValue();
+        const id = this.id();
+
+        if (id) { // update
+          this.helperModule.update(id,  this.name(), this.parameterName(), body, Helper.closeModal);
         } else { // create
-          this.helperModule.create(this.name(), body);
+          this.helperModule.create(this.name(), this.parameterName(), body, Helper.closeModal);
         }
       }
     }

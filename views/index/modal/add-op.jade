@@ -73,7 +73,7 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             span(data-bind="text: parameters")
                             .input-group
                                 span.input-group-addon
-                                    input(type="radio", name="lambda", value="body", data-bind="checked: bodyOrHelper")
+                                    input(type="radio", name="helper", value="body", data-bind="checked: bodyOrHelper")
                                 input#field-lambda.form-control(
                                     type='text',
                                     placeholder="Body",
@@ -84,7 +84,7 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                             label(for='field-helper') Helper
                             .input-group
                                 span.input-group-addon
-                                    input(type="radio", name="lambda", value="helper", data-bind="checked: bodyOrHelper")
+                                    input(type="radio", name="helper", value="helper", data-bind="checked: bodyOrHelper")
                                 select#field-helper.form-control.list-group(
                                     type='text',
                                     data-bind='options: $parent.helpers, ' +
@@ -132,7 +132,7 @@ mixin form-group-options(id, label, options, value, optionsText, optionsCaption)
                     .row
                         .col-md-4.text-left
                             // ko if: id()
-                            .btn.btn-danger(data-bind="click: deleteOperation") Delete
+                            .btn.btn-danger(data-bind="click: removeOperation") Delete
                             // /ko
                         .col-md-8
                             a.btn.btn-default(data-dismiss="modal") Close

@@ -47,11 +47,11 @@ define([
           );
         }, this);
 
-        this.deleteClicked = function (operation) {
+        this.removeClicked = function (operation) {
           jsplumb.detachAllConnections(
             $('#stream' + self.id())
           );
-          self.streamModule.delete(self.id());
+          self.streamModule.remove(self.id());
           return true;
         };
 

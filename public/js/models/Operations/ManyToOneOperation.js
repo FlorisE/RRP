@@ -92,7 +92,7 @@ define(
       this.ypx = ko.computed(() => this.y() + "px");
 
       // overwrites the base class
-       this.deleteOperation = function () {
+       this.removeOperation = function () {
          this.operationModule.remove(
            this.id(),
            () => {

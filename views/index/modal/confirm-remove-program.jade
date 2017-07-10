@@ -1,0 +1,11 @@
+#confirm-remove-program.modal.fade(role='dialog',tabindex="-1")
+    .modal-dialog(role='document')
+        .modal-content
+            form(data-bind="submit: confirmRemoveProgram")
+                .modal-header
+                    h4.modal-title Remove program
+                .modal-body
+                    p Are you sure you want to remove this program? This cannot be undone.
+                .modal-footer
+                    a.btn.btn-default(data-dismiss="modal") Cancel
+                    button.btn.btn-primary(type="submit") Remove

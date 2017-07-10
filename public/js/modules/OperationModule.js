@@ -66,8 +66,8 @@ define(
         this.operations.set(id, operation);
       }
 
-      delete(id) {
-        return this.operations.delete(id);
+      onRemove(id) {
+        return this.operations.remove(id);
       }
 
       remove(id, callback) {
@@ -79,10 +79,6 @@ define(
           },
           callback
         );
-      }
-
-      removed(id) {
-        this.delete(id);
       }
 
       clear() {

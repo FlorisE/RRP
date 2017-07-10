@@ -25,7 +25,7 @@
                     span.glyphicon.glyphicon-eye-open
                 button.btn.btn-danger.btn-lg.stream-menu(
                     data-bind='visible: menuVisible && deletable, ' +
-                              'click: deleteClicked'
+                              'click: removeClicked'
                 )
                     span.glyphicon.glyphicon-trash
                 ul.dropdown-menu(data-bind="foreach: $root.availableOperations")

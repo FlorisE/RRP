@@ -37,7 +37,7 @@ define(
                     }
                 );
                 this.connectionHandler.register("stream", "remove",
-                    (item) => this.streams.delete(item.id)
+                    (item) => this.streams.remove(item.id)
                 );
             }
 
@@ -71,7 +71,7 @@ define(
                 });
             }
 
-            delete(id) {
+            remove(id) {
                 this.connectionHandler.emit({
                     type: "stream", action: "remove", id: id
                 });

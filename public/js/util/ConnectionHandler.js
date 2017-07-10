@@ -27,6 +27,7 @@ define(
                 const self = this;
                 this.id = id;
                 this.dependencyInjector.programModule.loadAll();
+                this.dependencyInjector.helperModule.loadAll();
                 this.socket.on(this.id, function (entries) {
                     let process = (entry) => {
                         var clientKey = `${entry.type}|${entry.action}`;

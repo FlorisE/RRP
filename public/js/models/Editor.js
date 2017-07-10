@@ -115,11 +115,11 @@ define([
           return true;
         };
 
-        this.confirmDeleteProgram = function () {
+        this.confirmRemoveProgram = function () {
           self.programModule.remove(
             self.loadedProgram().id(),
             function () {
-              $('#confirm-delete-program').modal('hide');
+              $('#confirm-remove-program').modal('hide');
               self.loadedProgram(null);
               document.title = "Reactive Robot Programming";
               instance.reset();
@@ -136,7 +136,7 @@ define([
           return true;
         };
 
-        this.deleteProgramModal = function () {
+        this.removeProgramModal = function () {
           return true;
         };
 
@@ -201,7 +201,6 @@ define([
       }
 
       load() {
-        this.helperModule.clear();
         this.sensorModule.clear();
         this.actuatorModule.clear();
         this.availableOperationsModule.clear();

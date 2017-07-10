@@ -3,110 +3,158 @@ const Helper = require("../models/Helper");
 const uuid = require('node-uuid');
 
 class HelperDao {
-    constructor(session, sender) {
-        this.session = session;
-        this.sender = sender;
-    }
+  constructor(session, sender) {
+    this.session = session;
+    this.sender = sender;
+  }
 
-    getAll() {
-        return this.session.run(
-            `MATCH (h:Helper) 
-             RETURN ${HelperDao.returnPart("h")} as helper`
-        );
+  async loadAll() {
+    try {
+      let runQuery = await this.session.run(
+        `MATCH (h:Helper) 
+         RETURN ${HelperDao.returnPart("h")} as helper`
+      );
+      return runQuery.records.map(
+        (record) => {
+          let helper = record.get("helper");
+          return new Helper(helper.id, helper.name, helper.parameterName, helper.body);
+        }
+      );
+    } catch (err) {
+      console.log("HelperDao.loadAll: " + err);
     }
+  }
 
-    get(id, resolve, reject) {
-        return this.session.run(
-            `MATCH (h:Helper { uuid: {id} }) 
-             RETURN ${HelperDao.returnPart("h")} as helper`,
-            { id: id }
-        ).then(
-            (results) => this.mapGet(results, resolve),
-            reject
-        );
+  async get(id) {
+    try {
+      let runQuery = await this.session.run(
+        `MATCH (h:Helper { uuid: {id} }) 
+         RETURN ${HelperDao.returnPart("h")} as helper`,
+        {id: id}
+      );
+      let helper = runQuery.records[0].get("helper");
+      resolve(new Helper(helper.id, helper.name, helper.parameterName, helper.body));
+    } catch (err) {
+      console.log("HelperDao.get: " + err);
+      reject();
     }
+  }
 
-    mapGet(results, resolve) {
-        const helper = results.records[0].get("helper");
-        resolve(new Helper(helper.id, helper.name, helper.body));
-    }
-
-    add(name, body, callback) {
-        var cypher = `
-CREATE (h:Helper { name: {name}, body: {body}, uuid: {uuid}}) 
+  async add(name, parameterName, body, callback) {
+    let cypher = `
+CREATE (
+  h:Helper { 
+    name: {name}, 
+    body: {body}, 
+    parameterName: {parameterName}, 
+    uuid: {uuid}
+  }
+) 
 RETURN ${HelperDao.returnPart("h")} as helper`;
-        var parameters = {
-            name: name,
-            body: body,
-            uuid: uuid.v4()
-        };
-        return this.session.run(
-            cypher, parameters
-        ).then(
-            (record) => {
-                let helper = HelperDao.addHelper(record.get("helper"));
-                this.sender.send(helper, callback);
-            },
-            console.log
+    let parameters = {
+      name: name,
+      parameterName: parameterName,
+      body: body,
+      uuid: uuid.v4()
+    };
+    try {
+      let runQuery = await this.session.run(
+        cypher, parameters
+      );
+      if (runQuery.records.length === 1) {
+        let helper = runQuery.records[0].get("helper");
+        this.sender.send(
+          HelperDao.createHelperAddMessage(helper),
+          callback
         );
+      } else {
+        console.log("HelperDao.add: No helper returned by add operation");
+      }
+    } catch (err) {
+      console.log("HelperDao.add: " + err);
     }
+  }
 
-    update(id, name, body, callback) {
-        var cypher = `
+  async remove(id, callback) {
+    const cypher = `
 MATCH (h:Helper) 
 WHERE h.uuid = {id}
-SET h.name = {name}, 
+DETACH DELETE h`;
+    const parameter = { id: id };
+    try {
+      let removeQuery = await this.session.run(cypher, parameter);
+      this.sender.send(
+        {
+          type: 'helper',
+          action: 'remove',
+          id: id
+        },
+        callback
+      )
+    } catch (err) {
+      logwrapper(err);
+    }
+  }
+
+  async update(id, name, parameterName, body, callback) {
+    const cypher = `
+MATCH (h:Helper) 
+WHERE h.uuid = {id}
+SET h.name = {name},
+    h.parameterName = {parameterName},
     h.body = {body}
 RETURN ${HelperDao.returnPart("h")} as helper`;
-        var parameters = {
-            id: id,
-            name: name,
-            body: body
-        };
-        return this.session.run(cypher, parameters).catch(console.log).then(
-            (record) => {
-                let helper = HelperDao.addHelper(record.get("helper"));
-                this.sender.send(helper, callback);
-            },
-            console.log
+    const parameters = {
+      id: id,
+      name: name,
+      parameterName: parameterName,
+      body: body
+    };
+    try {
+      const runQuery = await this.session.run(cypher, parameters);
+      if (runQuery.records.length === 1) {
+        let helper = runQuery.records[0].get("helper");
+        this.sender.send(
+          HelperDao.createHelperUpdateMessage(helper),
+          callback
         );
+      }
+    } catch (err) {
+      console.log("HelperDao.update: " + err);
     }
+  }
 
-    sendToClient(programId) {
-        return (result) => {
-            let helperRecords = result.records.map((record) => record.get("helper"));
-            let helpers = helperRecords.map(HelperDao.addHelper);
-            this.sender.send(helpers);
-        };
-    }
-
-    static returnPart(helper) {
-        return `{
+  static returnPart(helper) {
+    return `{
             id: ${helper}.uuid,
             name: ${helper}.name,
+            parameterName: ${helper}.parameterName,
             body: ${helper}.body
         }`;
-    }
+  }
 
-    static mapHelper(helper) {
-        return {
-            type: "helper",
-            action: helper.action,
-            id: helper.id,
-            name: helper.name,
-            body: helper.body
-        }
+  static mapHelper(helper, action) {
+    return {
+      type: "helper",
+      action: action,
+      id: helper.id,
+      name: helper.name,
+      parameterName: helper.parameterName,
+      body: helper.body
     }
+  }
 
-    static addHelper(helper) {
-        helper.action = "add";
-        return HelperDao.mapHelper(helper);
-    }
+  static createHelperAddMessage(helper) {
+    return HelperDao.mapHelper(helper, "add");
+  }
 
-    static updateHelper(helper) {
-        helper.action = "update";
-        return HelperDao.mapHelper(helper);
-    }
+  static createHelperUpdateMessage(helper) {
+    return HelperDao.mapHelper(helper, "update");
+  }
+
+  send(helperMsg, callback) {
+    this.sender.send(helperMsg, callback);
+  }
 }
 
 module.exports = HelperDao;

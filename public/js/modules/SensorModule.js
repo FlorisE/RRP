@@ -40,8 +40,8 @@ define(
                 this.sensors.set(id, sensor);
             }
 
-            delete(id) {
-                return this.sensors.delete(id);
+            remove(id) {
+                return this.sensors.remove(id);
             }
 
             clear() {

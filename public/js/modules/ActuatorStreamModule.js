@@ -131,8 +131,8 @@ define(
         this.d.streamModule.update(id, stream);
       }
 
-      delete(id) {
-        this.d.streamModule.delete(id);
+      remove(id) {
+        this.d.streamModule.remove(id);
       }
 
       clear() {

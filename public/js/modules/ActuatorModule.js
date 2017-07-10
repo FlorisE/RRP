@@ -40,8 +40,8 @@ define(
                 this.actuators.set(id, actuator);
             }
 
-            delete(id) {
-                return this.actuators.delete(id);
+            remove(id) {
+                return this.actuators.remove(id);
             }
 
             clear() {

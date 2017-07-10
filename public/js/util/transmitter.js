@@ -85,19 +85,20 @@ define([], function () {
             );
         }
 
-        addHelper(name, body) {
-            this.helper("add", null, name, body);
+        addHelper(name, parameterName, body) {
+            this.helper("add", null, name, parameterName, body);
         }
 
-        updateHelper(id, name, body) {
-            this.helper("update", id, name, body);
+        updateHelper(id, name, parameterName, body) {
+            this.helper("update", id, name, parameterName, body);
         }
 
-        helper(action, id, name, body) {
+        helper(action, id, name, parameterName, body) {
             var msg = {
-                type: "lambda",
+                type: "helper",
                 action: action,
                 name: name,
+                parameterName: parameterName,
                 body: body
             };
 

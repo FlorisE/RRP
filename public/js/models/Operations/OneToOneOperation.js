@@ -42,7 +42,7 @@ define(['knockout', './Operation', '../../util/JSPlumbInstance'], function (ko, 
           this.destination()
         ) : null;
 
-      this.deleteOperation = function () {
+      this.removeOperation = function () {
         this.operationModule.remove(
           this.id(),
           () => {

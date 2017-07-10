@@ -33,6 +33,8 @@ io.on("connection", clientHandler.connect.bind(clientHandler));
  * Listen on provided port, on all network interfaces.
  */
 
+console.log(`Listening on ${port}`);
+
 server.listen(app.get('port'));
 server.on('error', onError);
 server.on('listening', onListening);
