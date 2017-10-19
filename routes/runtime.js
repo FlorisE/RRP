@@ -4,8 +4,15 @@ const router = express.Router();
 const RuntimeModule = require('../modules/RuntimeModule');
 const runtimeModule = new RuntimeModule(null, null, null, null, "nao");
 
+/**
+ * Communicates with a runtime architecture
+ */
 class Runtime {
 
+    /**
+     * To be called by ExpressJS
+     * @param router A router instance
+     */
     constructor(router) {
         this.router = router;
 
@@ -16,32 +23,42 @@ class Runtime {
         this.router.delete('/:id', this.stop.bind(this));
     }
 
-    // returns list of running processes
+    /**
+     * returns list of running processes
+     */
     getMultiple(req, res, next) {
         res.send(runtimeModule.running());
     }
 
-    // returns information about running process
+    /**
+     * returns information about running process
+     */
     getSingle(req, res, next) {
         const id = parseInt(req.params.id);
         res.send(runtimeModule.info(id));
     }
 
-    // starts a process
+    /**
+     * starts a process
+     */
     start(req, res, next) {
         const id = parseInt(req.params.id);
         const response = runtimeModule.start(id);
         res.send(response);
     }
 
-    // restarts a process
+    /**
+     * restarts a process
+     */
     restart(req, res, next) {
         const id = parseInt(req.params.id);
         const response = runtimeModule.restart(id);
         res.send(response);
     }
 
-    // stops a process
+    /**
+     * stops a process
+     */
     stop(req, res, next) {
         const id = parseInt(req.params.id);
         const response = runtimeModule.stop(id);
@@ -50,6 +67,6 @@ class Runtime {
 
 }
 
-let runtime = new Runtime(router);
+const runtime = new Runtime(router);
 
 module.exports = runtime.router;
