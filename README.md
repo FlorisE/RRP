@@ -53,7 +53,7 @@ To install this project follow these steps:
 2. Clone this repository and cd into it
 3. Run npm install
 4. Install Neo4j (we have tested the RRP-VPE using the community edition)
-5. Copy one of the example databases into Neo4j (for the location of the Neo4j databases, see https://neo4j.com/docs/operations-manual/current/configuration/file-locations/)
+5. Copy the example database in the example_db folder into the Neo4j data folder (for the location of the Neo4j databases, see https://neo4j.com/docs/operations-manual/current/configuration/file-locations/)
 6. Run node bin/www to start. Access the RRP-VPE using your web browser at http://localhost:3000
 
 # Thanks
