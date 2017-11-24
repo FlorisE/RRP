@@ -116,7 +116,7 @@ define([
         };
 
         this.confirmRemoveProgram = function () {
-          self.programModule.remove(
+          self.programModule.requestRemove(
             self.loadedProgram().id(),
             function () {
               $('#confirm-remove-program').modal('hide');

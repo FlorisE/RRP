@@ -82,7 +82,11 @@ define(
         this.programs.set(id, program);
       }
 
-      remove(id, callback) {
+      remove(id) {
+        this.programs.remove(id);
+      }
+
+      requestRemove(id, callback) {
         this.connectionHandler.emit(
           {
             type: 'program',

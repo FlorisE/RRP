@@ -11,13 +11,13 @@ define(['knockout'], function (ko) {
           "stream" + operation.source(),
           {
             endpoint: "Blank",
-            anchor: "BottomCenter"
+            anchor: "BottomCenter" // another nice option is Continuous
           }),
         target: jsplumb.addEndpoint(
           "stream" + operation.destination(),
           {
             endpoint: "Blank",
-            anchor: "TopCenter",
+            anchor: "TopCenter", // another nice option is Continuous
           }),
         overlays: [
           [
@@ -32,6 +32,7 @@ define(['knockout'], function (ko) {
         ]
       });
       operation.connection(connection);
+      jsPlumb.repaintEverything();
     }
   }
 });
