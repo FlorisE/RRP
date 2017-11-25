@@ -32,7 +32,6 @@ define(['knockout'], function (ko) {
         ]
       });
       operation.connection(connection);
-      jsPlumb.repaintEverything();
     }
   }
 });
