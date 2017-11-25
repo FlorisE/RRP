@@ -50,11 +50,11 @@ The RRP-VPE consists of an ExpressJS web application build on top of a Neo4j gra
 
 To install this project follow these steps:
 1. Install the current version of NodeJS (we do not currently support the LTS version)
-2. Clone this repository and cd into it
-3. Run npm install
-4. Install Neo4j (we have tested the RRP-VPE using the community edition)
-5. Copy the example database in the example_db folder into the Neo4j data folder (for the location of the Neo4j databases, see https://neo4j.com/docs/operations-manual/current/configuration/file-locations/)
-6. Run node bin/www to start. Access the RRP-VPE using your web browser at http://localhost:3000
+2. Clone (`git clone https://github.com/FlorisE/RRP`) this repository and `cd` into it
+3. Run `npm install`
+4. Install Neo4j (we have tested the RRP-VPE using the community edition). Start it and go to the Neo4j Browser (usually at http://localhost:7474). Log in using the default username and password (typically `neo4j` as username and `neo4j` as password). RRP by default uses `neo4j` as username and `rrp` as password. This can be changed in line 5 of `util/ClientHandler.js`.
+5. Copy the example database in the `example_db` folder into the Neo4j data folder (for the location of the Neo4j databases, see https://neo4j.com/docs/operations-manual/current/configuration/file-locations/)
+6. Run `node bin/www` to start. Access the RRP-VPE using your web browser at http://localhost:3000
 
 # Thanks
 
