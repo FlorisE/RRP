@@ -1,0 +1,14 @@
+name: 'nao-naoqi21'
+sensors:
+  - RedBall
+  - JointPosition
+  - BlobDetection
+  - WordRecognized
+  - FaceDetection
+actuators:
+  - LedColor
+  - Print
+  - LedBrightness
+  - RememberFace
+  - Say
+  - Tracker
