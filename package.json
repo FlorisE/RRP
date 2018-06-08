@@ -1,9 +1,15 @@
 {
-  "name": "Reactive Robot Programming",
+  "name": "rrp-vpe",
   "version": "0.0.1",
+  "description": "A Visual Programming Environment for programming robots using Reactive Programming techniques",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FlorisE/RRP"
+  },
+  "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "node .\\bin\\www",
+    "start": "node ./bin/www",
     "test": "mocha",
     "grunt": "grunt"
   },
