@@ -1,7 +1,7 @@
 "use strict";
 const uuid = require("node-uuid");
 const neo4j = require('neo4j-driver').v1;
-const driver = neo4j.driver("bolt://localhost",
+const driver = neo4j.driver("bolt://neo4j",
                           neo4j.auth.basic("neo4j", "rrp"));
 const Sender = require('../util/sender');
 const ModuleFactory = require('../util/ModuleFactory');
