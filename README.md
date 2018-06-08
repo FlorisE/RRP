@@ -48,6 +48,7 @@ Most of the magic of an RRP program happens inside the sensors, procedural param
 
 The RRP-VPE consists of an ExpressJS web application build on top of a Neo4j graph database. To run applications a runtime environment is needed. We provide a Python-based runtime environment called RRP-Runtime.
 
+## Manual installation
 To install this project follow these steps:
 1. Install the current version of NodeJS (we do not currently support the LTS version)
 2. Clone (`git clone https://github.com/FlorisE/RRP`) this repository and `cd` into it
@@ -55,6 +56,11 @@ To install this project follow these steps:
 4. Install Neo4j (we have tested the RRP-VPE using the community edition). Start it and go to the Neo4j Browser (usually at http://localhost:7474). Log in using the default username and password (typically `neo4j` as username and `neo4j` as password). RRP by default uses `neo4j` as username and `rrp` as password. This can be changed in line 5 of `util/ClientHandler.js`.
 5. Copy the example database in the `example_db` folder into the Neo4j data folder (for the location of the Neo4j databases, see https://neo4j.com/docs/operations-manual/current/configuration/file-locations/)
 6. Run `node bin/www` to start. Access the RRP-VPE using your web browser at http://localhost:3000
+
+## Installation using Docker
+Make sure you have Docker and Docker-Compose installed (see https://docs.docker.com/compose/install/)
+
+Simply running `docker-compose up` in the checked out repository should get you up and running. The RRP-VPE will be available from http://localhost:3000.
 
 # Thanks
 
